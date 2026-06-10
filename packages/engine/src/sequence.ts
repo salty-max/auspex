@@ -32,8 +32,10 @@ import type {
  * distributions: number of attacks → hits → wounds → unsaved wounds → damage → Feel No
  * Pain. No dice are rolled — the result is the exact distribution, identical on every run.
  *
- * Implemented keywords: Sustained Hits, Lethal Hits, Devastating Wounds.
- * Per-model overkill is layered on separately.
+ * Damage is allocated model by model: each unsaved wound's damage is capped at the
+ * current model's remaining wounds (excess is lost), and a destroyed unit absorbs
+ * nothing further. Implemented keywords: Sustained Hits, Lethal Hits, Devastating
+ * Wounds.
  */
 export function simulate(
   weapon: Weapon,
@@ -85,11 +87,12 @@ export function simulate(
     target.feelNoPain
   )
 
-  // Total damage = the sum of `unsavedWounds` independent wound-damage rolls.
-  const damageDistribution = compoundSum(unsavedWounds, woundDamage)
+  // Allocate the wounds through the unit, model by model, losing excess damage.
+  const damageDistribution = inflictDamage(unsavedWounds, woundDamage, target)
 
   return {
     damageDistribution,
+    modelsSlainDistribution: modelsSlain(damageDistribution, target),
     mean: mean(damageDistribution),
     variance: variance(damageDistribution),
     probAtLeast: (x) => probAtLeast(damageDistribution, x),
@@ -172,6 +175,78 @@ function compoundSum(count: Distribution, term: Distribution): Distribution {
     nFold = convolve(nFold, term)
   }
   return out.length > 0 ? out : point(0)
+}
+
+/**
+ * The distribution of damage actually inflicted on the unit after allocating a
+ * random number of unsaved wounds model by model.
+ *
+ * The walk's state is the cumulative inflicted damage `s`, which fully determines
+ * the unit's condition: `floor(s / wounds)` models are slain and the current model
+ * has taken `s % wounds`. Slain models always absorbed exactly their full wounds
+ * (excess was lost), and `models × wounds` is the absorbing "unit destroyed" state.
+ */
+function inflictDamage(
+  unsavedWounds: Distribution,
+  damage: Distribution,
+  target: Target
+): Distribution {
+  const cap = target.models * target.wounds
+  const out = new Array<number>(cap + 1).fill(0)
+  let state: Distribution = point(0)
+  for (let n = 0; n < unsavedWounds.length; n++) {
+    const weight = unsavedWounds[n]
+    if (weight) {
+      for (let s = 0; s < state.length; s++) {
+        out[s] += weight * state[s]
+      }
+    }
+    state = applyOneWound(state, damage, target)
+  }
+  return trim(out)
+}
+
+/** Advance the damage-state distribution by one unsaved wound. */
+function applyOneWound(
+  state: Distribution,
+  damage: Distribution,
+  target: Target
+): Distribution {
+  const cap = target.models * target.wounds
+  const out = new Array<number>(cap + 1).fill(0)
+  for (let s = 0; s < state.length; s++) {
+    const weight = state[s]
+    if (!weight) continue
+    if (s >= cap) {
+      out[cap] += weight // the unit is already destroyed
+      continue
+    }
+    const remaining = target.wounds - (s % target.wounds)
+    for (let d = 0; d < damage.length; d++) {
+      const p = damage[d]
+      if (!p) continue
+      // Damage at or past the model's remaining wounds slays it; the excess is
+      // lost, landing the unit exactly on the next model boundary.
+      out[d >= remaining ? s + remaining : s + d] += weight * p
+    }
+  }
+  return out
+}
+
+/** Marginalize the inflicted-damage distribution into models slain. */
+function modelsSlain(damage: Distribution, target: Target): Distribution {
+  const out = new Array<number>(target.models + 1).fill(0)
+  for (let s = 0; s < damage.length; s++) {
+    out[Math.min(target.models, Math.floor(s / target.wounds))] += damage[s]
+  }
+  return out
+}
+
+/** Drop trailing zero entries, keeping at least the zero-damage entry. */
+function trim(d: readonly number[]): Distribution {
+  let last = d.length - 1
+  while (last > 0 && d[last] === 0) last--
+  return d.slice(0, last + 1)
 }
 
 /**

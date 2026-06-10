@@ -165,6 +165,7 @@ describe('simulate', () => {
     // 1 attack, BS3+, Sustained 1: P(0 hits) = 2/6, P(1) = 3/6, P(2 hits) = 1/6.
     // Against T4 with no usable save (6+ at AP -1), each hit wounds with 1/2,
     // so the damage distribution exposes the hits distribution through q = 1/2.
+    // Three 1W models so every 1-damage wound kills cleanly with no capping.
     const weapon: Weapon = {
       attacks: 1,
       skill: 3,
@@ -173,7 +174,7 @@ describe('simulate', () => {
       damage: 1,
       keywords: { sustainedHits: 1 },
     }
-    const target: Target = { toughness: 4, save: 6, wounds: 1, models: 1 }
+    const target: Target = { toughness: 4, save: 6, wounds: 1, models: 3 }
     const d = simulate(weapon, target).damageDistribution
     // P(2 damage) = P(crit)·q² = (1/6)(1/4); P(1) = (3/6)q + (1/6)·2q(1−q) = 1/3.
     expect(d[2]).toBeCloseTo((1 / 6) * (1 / 4))
@@ -233,7 +234,7 @@ describe('simulate', () => {
       damage: 1,
       keywords: { sustainedHits: 1, lethalHits: true },
     }
-    const target: Target = { toughness: 4, save: 6, wounds: 1, models: 1 }
+    const target: Target = { toughness: 4, save: 6, wounds: 1, models: 3 }
     const d = simulate(weapon, target).damageDistribution
     // Crit (1/6): 1 auto-wound + Bernoulli(1/2) for the extra hit → P(2) = (1/6)(1/2).
     expect(d[2]).toBeCloseTo(1 / 12)
@@ -278,12 +279,13 @@ describe('simulate', () => {
       ap: 3,
       keywords: { devastatingWounds: true },
     }
+    // A 4-model squad (12 wounds total) so 10 one-damage wounds never cap.
     const stormShield: Target = {
       toughness: 4,
       save: 3,
       invuln: 4,
       wounds: 3,
-      models: 1,
+      models: 4,
     }
     // The invuln (fail 1/2) catches normal wounds, never critical ones:
     // u = 1/6 + (1/2 − 1/6)(1/2) = 1/3 instead of (1/2)(1/2) = 1/4.
@@ -335,6 +337,76 @@ describe('simulate', () => {
     // FNP applies after the (bypassed) save: the mean scales by 2/3.
     const result = simulate(weapon, fnpMarine)
     expect(result.mean).toBeCloseTo(10 * (2 / 3) * (5 / 18) * (2 / 3))
+  })
+
+  test('overkill: a D6-damage wound slays a 2W model with P(d ≥ 2) (issue acceptance value)', () => {
+    // Torrent S8 vs T4 (wound 5/6), no usable save: P(unsaved) = 5/6.
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 'D6',
+    }
+    const target: Target = { toughness: 4, save: 6, wounds: 2, models: 1 }
+    const result = simulate(weapon, target)
+    // P(slain) = P(unsaved)·P(D6 ≥ 2) = (5/6)(5/6).
+    expect(result.modelsSlainDistribution[1]).toBeCloseTo((5 / 6) * (5 / 6))
+    // Inflicted damage is min(D6, 2): mean (5/6)·(1·1/6 + 2·5/6) = (5/6)(11/6).
+    expect(result.mean).toBeCloseTo((5 / 6) * (11 / 6))
+  })
+
+  test('overkill: excess damage past the last wound is lost', () => {
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 'D6',
+    }
+    const target: Target = { toughness: 4, save: 6, wounds: 1, models: 1 }
+    const result = simulate(weapon, target)
+    // Any damage roll inflicts exactly 1: P(1) = 5/6, P(0) = 1/6, nothing above.
+    expect(result.damageDistribution).toHaveLength(2)
+    expect(result.damageDistribution[1]).toBeCloseTo(5 / 6)
+    expect(result.probAtLeast(2)).toBe(0)
+  })
+
+  test('no cross-wound loss: two 1-damage wounds kill a 2W model', () => {
+    const weapon: Weapon = {
+      attacks: 2,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 1,
+    }
+    const target: Target = { toughness: 4, save: 6, wounds: 2, models: 1 }
+    const result = simulate(weapon, target)
+    // Both wounds land with (5/6)²; damage accumulates across wounds.
+    expect(result.modelsSlainDistribution[1]).toBeCloseTo(25 / 36)
+  })
+
+  test('a destroyed unit absorbs nothing further', () => {
+    const weapon: Weapon = {
+      attacks: 10,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 1,
+    }
+    const target: Target = { toughness: 4, save: 6, wounds: 1, models: 2 }
+    const result = simulate(weapon, target)
+    expect(result.damageDistribution).toHaveLength(3)
+    expect(result.probAtLeast(3)).toBe(0)
+    expect(totalMass(result.modelsSlainDistribution)).toBeCloseTo(1)
+  })
+
+  test('models slain marginalizes the damage walk (10 bolter shots vs Marines)', () => {
+    const result = simulate(bolter, marine)
+    // No Marine dies while fewer than 2 unsaved wounds land: B(10, 1/9) ≤ 1.
+    const p0 = (8 / 9) ** 10 + 10 * (1 / 9) * (8 / 9) ** 9
+    expect(result.modelsSlainDistribution[0]).toBeCloseTo(p0)
+    expect(totalMass(result.modelsSlainDistribution)).toBeCloseTo(1)
   })
 
   test('percentile reads quantiles off the damage distribution', () => {

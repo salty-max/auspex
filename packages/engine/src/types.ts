@@ -60,8 +60,14 @@ export interface Modifiers {
 
 /** The result of resolving a weapon against a target. */
 export interface SimResult {
-  /** The full distribution of total damage dealt to the unit (post-save, post-FNP). */
+  /**
+   * The distribution of damage actually inflicted on the unit (post-save,
+   * post-FNP). Excess damage past a slain model is lost, so the support is
+   * bounded by `wounds × models`.
+   */
   damageDistribution: Distribution
+  /** The distribution of the number of models slain (support `0..models`). */
+  modelsSlainDistribution: Distribution
   /** Expected (mean) damage dealt. */
   mean: number
   /** Variance of the damage dealt. */
