@@ -25,4 +25,10 @@ export {
   woundThreshold,
 } from './rules'
 export { simulate } from './sequence'
-export type { Modifiers, SimResult, Target, Weapon } from './types'
+export type {
+  Modifiers,
+  SimResult,
+  Target,
+  Weapon,
+  WeaponKeywords,
+} from './types'
