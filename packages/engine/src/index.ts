@@ -15,7 +15,9 @@ export {
 } from './distribution'
 export {
   atLeastOnD6,
+  critProbability,
   hitProbability,
+  type Reroll,
   rollProbability,
   type SaveContext,
   saveFailProbability,
