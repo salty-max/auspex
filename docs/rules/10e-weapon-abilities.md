@@ -30,12 +30,20 @@ Bernoulli trial; the critical probability comes from `critProbability`, so re-ro
 raise it. Torrent weapons make no hit roll, so they can never score a Critical Hit
 and Sustained Hits is inert on them.
 
-## Lethal Hits — planned
+## Lethal Hits — implemented
 
 > Each time an attack is made with such a weapon, a Critical Hit automatically wounds
 > the target.
 
-Attacks that critically hit skip the wound roll; the rest wound as normal.
+Attacks that critically hit skip the wound roll; the rest wound as normal. The
+automatic wound still takes the saving throw — it is not a Critical Wound (no wound
+roll was made), so it does not trigger Devastating Wounds.
+
+**Engine:** `WeaponKeywords.lethalHits` in `types.ts`. The per-attack distribution
+tracks successful wounds directly: the critical slice contributes one automatic
+wound, the normal-hit slice rolls to wound. With Sustained Hits X, only the critting
+hit auto-wounds — the X extra hits roll to wound normally. Torrent weapons never
+crit, so the keyword is inert on them.
 
 ## Devastating Wounds — planned
 

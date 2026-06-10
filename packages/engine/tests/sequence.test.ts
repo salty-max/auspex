@@ -206,6 +206,65 @@ describe('simulate', () => {
     expect(sustained.mean).toBeCloseTo(simulate(flamer, marine).mean)
   })
 
+  test('Lethal Hits: the critical slice skips the wound roll (issue acceptance value)', () => {
+    const weapon: Weapon = { ...bolter, keywords: { lethalHits: true } }
+    // Wounds per attack: 1/6 + (3/6)(1/2) = 5/12 instead of (4/6)(1/2) = 1/3.
+    const result = simulate(weapon, marine)
+    expect(result.mean).toBeCloseTo(10 * (5 / 12) * (1 / 3))
+  })
+
+  test('Lethal Hits shines against high toughness', () => {
+    const weapon: Weapon = { ...bolter, keywords: { lethalHits: true } }
+    const knight: Target = { toughness: 8, save: 6, wounds: 10, models: 1 }
+    // S4 vs T8 wounds on 6+: per attack 1/6 + (3/6)(1/6) = 1/4 vs plain (4/6)(1/6) = 1/9.
+    const lethal = simulate(weapon, knight)
+    const plain = simulate(bolter, knight)
+    expect(lethal.mean).toBeCloseTo(10 * (1 / 4) * (5 / 6))
+    expect(plain.mean).toBeCloseTo(10 * (1 / 9) * (5 / 6))
+  })
+
+  test('Lethal + Sustained: only the critting hit auto-wounds, extra hits roll', () => {
+    // 1 attack BS3+ S4 vs T4, no usable save (fail = 1), Sustained 1 + Lethal.
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 3,
+      strength: 4,
+      ap: 1,
+      damage: 1,
+      keywords: { sustainedHits: 1, lethalHits: true },
+    }
+    const target: Target = { toughness: 4, save: 6, wounds: 1, models: 1 }
+    const d = simulate(weapon, target).damageDistribution
+    // Crit (1/6): 1 auto-wound + Bernoulli(1/2) for the extra hit → P(2) = (1/6)(1/2).
+    expect(d[2]).toBeCloseTo(1 / 12)
+    // P(1) = normal hit wounding (3/6)(1/2) + crit whose extra hit misses (1/6)(1/2).
+    expect(d[1]).toBeCloseTo(1 / 4 + 1 / 12)
+    expect(totalMass(d)).toBeCloseTo(1)
+  })
+
+  test('Lethal Hits compounds with hit re-rolls through the crit probability', () => {
+    const weapon: Weapon = { ...bolter, keywords: { lethalHits: true } }
+    // Re-roll 1s: P(hit) = 7/9, P(crit) = 7/36.
+    // Wounds per attack: 7/36 + (7/9 − 7/36)(1/2) = 35/72.
+    const result = simulate(weapon, marine, { rerollHit: 'ones' })
+    expect(result.mean).toBeCloseTo(10 * (35 / 72) * (1 / 3))
+  })
+
+  test('Lethal Hits is inert on torrent weapons', () => {
+    const flamer: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 4,
+      ap: 0,
+      damage: 1,
+    }
+    const lethal = simulate(
+      { ...flamer, keywords: { lethalHits: true } },
+      marine
+    )
+    expect(lethal.mean).toBeCloseTo(simulate(flamer, marine).mean)
+  })
+
   test('percentile reads quantiles off the damage distribution', () => {
     const result = simulate(bolter, marine)
     expect(result.percentile(0)).toBe(0)

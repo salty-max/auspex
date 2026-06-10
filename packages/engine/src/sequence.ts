@@ -7,6 +7,7 @@ import {
   percentile,
   point,
   probAtLeast,
+  shift,
   variance,
 } from './distribution'
 import {
@@ -16,7 +17,13 @@ import {
   saveFailProbability,
   woundProbability,
 } from './rules'
-import type { Modifiers, SimResult, Target, Weapon } from './types'
+import type {
+  Modifiers,
+  SimResult,
+  Target,
+  Weapon,
+  WeaponKeywords,
+} from './types'
 
 /**
  * Resolve a weapon against a target and return the exact distribution of damage dealt.
@@ -25,7 +32,7 @@ import type { Modifiers, SimResult, Target, Weapon } from './types'
  * distributions: number of attacks → hits → wounds → unsaved wounds → damage → Feel No
  * Pain. No dice are rolled — the result is the exact distribution, identical on every run.
  *
- * Implemented keywords: Sustained Hits. Lethal Hits, Devastating Wounds and
+ * Implemented keywords: Sustained Hits, Lethal Hits. Devastating Wounds and
  * per-model overkill are layered on separately.
  */
 export function simulate(
@@ -56,12 +63,9 @@ export function simulate(
       ? 0
       : critProbability(weapon.skill, mods.hit ?? 0, mods.rerollHit)
 
-  // Probability a single hit ends as an unsaved wound.
-  const pUnsaved = pWound * pFail
-
-  // Hits scored by one attack, then unsaved wounds carried by one attack.
-  const hits = hitsPerAttack(pHit, pCrit, weapon.keywords?.sustainedHits ?? 0)
-  const unsavedPerAttack = compoundBinomial(hits, pUnsaved)
+  // Successful wounds produced by one attack, then unsaved wounds after the save.
+  const wounds = woundsPerAttack(pHit, pCrit, pWound, weapon.keywords)
+  const unsavedPerAttack = compoundBinomial(wounds, pFail)
 
   // Distribution over the number of unsaved wounds, accounting for a variable attack count.
   const attacks = diceDistribution(weapon.attacks)
@@ -86,21 +90,41 @@ export function simulate(
 }
 
 /**
- * The distribution of hits scored by a single attack. Without Sustained Hits this
- * is a Bernoulli trial on the hit probability; with Sustained Hits X, the critical
- * slice of the hit mass scores `1 + X` hits instead of 1.
+ * The distribution of successful wounds produced by a single attack.
+ *
+ * An attack misses, hits normally (and rolls to wound), or scores a Critical Hit.
+ * A critical scores `1 + X` hits under Sustained Hits X; under Lethal Hits the
+ * critting hit wounds automatically, while Sustained Hits' extra hits still roll
+ * to wound as normal.
  */
-function hitsPerAttack(
+function woundsPerAttack(
   pHit: number,
   pCrit: number,
-  sustained: number
+  pWound: number,
+  keywords: WeaponKeywords = {}
 ): Distribution {
-  if (sustained <= 0 || pCrit === 0) return [1 - pHit, pHit]
-  const out = new Array<number>(2 + sustained).fill(0)
-  out[0] = 1 - pHit
-  out[1] = pHit - pCrit
-  out[1 + sustained] = pCrit
-  return out
+  const sustained = keywords.sustainedHits ?? 0
+  const critWounds = keywords.lethalHits
+    ? shift(binomial(sustained, pWound), 1) // 1 automatic wound + X rolled
+    : binomial(1 + sustained, pWound)
+
+  return mix([
+    [1 - pHit, point(0)],
+    [pHit - pCrit, binomial(1, pWound)],
+    [pCrit, critWounds],
+  ])
+}
+
+/** The weighted mixture of distributions: `Σ weightᵢ · distᵢ`. */
+function mix(parts: ReadonlyArray<[number, Distribution]>): Distribution {
+  const out: number[] = []
+  for (const [weight, dist] of parts) {
+    if (!weight) continue
+    for (let k = 0; k < dist.length; k++) {
+      out[k] = (out[k] ?? 0) + weight * dist[k]
+    }
+  }
+  return out.length > 0 ? out : point(0)
 }
 
 /**

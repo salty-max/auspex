@@ -6,6 +6,8 @@ import type { Reroll } from './rules'
 export interface WeaponKeywords {
   /** Sustained Hits X: a Critical Hit scores `x` additional hits. */
   sustainedHits?: number
+  /** Lethal Hits: a Critical Hit automatically wounds the target. */
+  lethalHits?: boolean
 }
 
 /** A weapon profile being resolved against a target. */
