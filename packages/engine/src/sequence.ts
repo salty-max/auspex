@@ -7,7 +7,6 @@ import {
   percentile,
   point,
   probAtLeast,
-  shift,
   variance,
 } from './distribution'
 import {
@@ -16,6 +15,7 @@ import {
   hitProbability,
   saveFailProbability,
   woundProbability,
+  woundThreshold,
 } from './rules'
 import type {
   Modifiers,
@@ -32,8 +32,8 @@ import type {
  * distributions: number of attacks → hits → wounds → unsaved wounds → damage → Feel No
  * Pain. No dice are rolled — the result is the exact distribution, identical on every run.
  *
- * Implemented keywords: Sustained Hits, Lethal Hits. Devastating Wounds and
- * per-model overkill are layered on separately.
+ * Implemented keywords: Sustained Hits, Lethal Hits, Devastating Wounds.
+ * Per-model overkill is layered on separately.
  */
 export function simulate(
   weapon: Weapon,
@@ -58,18 +58,26 @@ export function simulate(
   })
 
   // A torrent weapon makes no hit roll, so it can never score a Critical Hit.
+  // Critical Wounds are unaffected: the wound roll is always made.
   const pCrit =
     weapon.skill === 'torrent'
       ? 0
       : critProbability(weapon.skill, mods.hit ?? 0, mods.rerollHit)
+  const pCritWound = critProbability(
+    woundThreshold(weapon.strength, target.toughness),
+    mods.wound ?? 0,
+    mods.rerollWound
+  )
 
-  // Successful wounds produced by one attack, then unsaved wounds after the save.
-  const wounds = woundsPerAttack(pHit, pCrit, pWound, weapon.keywords)
-  const unsavedPerAttack = compoundBinomial(wounds, pFail)
+  // Unsaved wounds carried by one attack.
+  const perAttack = unsavedPerAttack(
+    { pHit, pCrit, pWound, pCritWound, pFail },
+    weapon.keywords
+  )
 
   // Distribution over the number of unsaved wounds, accounting for a variable attack count.
   const attacks = diceDistribution(weapon.attacks)
-  const unsavedWounds = compoundSum(attacks, unsavedPerAttack)
+  const unsavedWounds = compoundSum(attacks, perAttack)
 
   // Damage carried by a single unsaved wound, after Feel No Pain.
   const woundDamage = applyFeelNoPain(
@@ -89,29 +97,49 @@ export function simulate(
   }
 }
 
+/** The stage probabilities feeding the per-attack distribution. */
+interface StageProbabilities {
+  /** Probability one attack hits. */
+  pHit: number
+  /** Probability one attack scores a Critical Hit. */
+  pCrit: number
+  /** Probability one rolled wound roll succeeds. */
+  pWound: number
+  /** Probability one wound roll lands a Critical Wound. */
+  pCritWound: number
+  /** Probability the saving throw fails. */
+  pFail: number
+}
+
 /**
- * The distribution of successful wounds produced by a single attack.
+ * The distribution of unsaved wounds produced by a single attack.
  *
- * An attack misses, hits normally (and rolls to wound), or scores a Critical Hit.
- * A critical scores `1 + X` hits under Sustained Hits X; under Lethal Hits the
- * critting hit wounds automatically, while Sustained Hits' extra hits still roll
- * to wound as normal.
+ * An attack misses, hits normally (and rolls to wound), or scores a Critical Hit;
+ * a critical scores `1 + X` hits under Sustained Hits X, and under Lethal Hits the
+ * critting hit wounds automatically (Sustained Hits' extra hits still roll). Every
+ * wound then takes the saving throw — except that under Devastating Wounds, the
+ * Critical Wound slice of each rolled wound bypasses it entirely. The Lethal Hits
+ * automatic wound never rolled, so it is never critical and always takes the save.
  */
-function woundsPerAttack(
-  pHit: number,
-  pCrit: number,
-  pWound: number,
+function unsavedPerAttack(
+  { pHit, pCrit, pWound, pCritWound, pFail }: StageProbabilities,
   keywords: WeaponKeywords = {}
 ): Distribution {
   const sustained = keywords.sustainedHits ?? 0
-  const critWounds = keywords.lethalHits
-    ? shift(binomial(sustained, pWound), 1) // 1 automatic wound + X rolled
-    : binomial(1 + sustained, pWound)
+
+  // Probability one rolled wound ends unsaved.
+  const u = keywords.devastatingWounds
+    ? pCritWound + (pWound - pCritWound) * pFail
+    : pWound * pFail
+
+  const critSlice = keywords.lethalHits
+    ? convolve(binomial(1, pFail), binomial(sustained, u)) // auto-wound + X rolled
+    : binomial(1 + sustained, u)
 
   return mix([
     [1 - pHit, point(0)],
-    [pHit - pCrit, binomial(1, pWound)],
-    [pCrit, critWounds],
+    [pHit - pCrit, binomial(1, u)],
+    [pCrit, critSlice],
   ])
 }
 
@@ -122,23 +150,6 @@ function mix(parts: ReadonlyArray<[number, Distribution]>): Distribution {
     if (!weight) continue
     for (let k = 0; k < dist.length; k++) {
       out[k] = (out[k] ?? 0) + weight * dist[k]
-    }
-  }
-  return out.length > 0 ? out : point(0)
-}
-
-/**
- * The distribution of successes when the number of trials is itself random: sums
- * `Binomial(n, p)` weighted by `P(trials = n)`.
- */
-function compoundBinomial(trials: Distribution, p: number): Distribution {
-  const out: number[] = []
-  for (let n = 0; n < trials.length; n++) {
-    const weight = trials[n]
-    if (!weight) continue
-    const b = binomial(n, p)
-    for (let k = 0; k < b.length; k++) {
-      out[k] = (out[k] ?? 0) + weight * b[k]
     }
   }
   return out.length > 0 ? out : point(0)

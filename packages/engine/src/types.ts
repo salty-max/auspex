@@ -8,6 +8,8 @@ export interface WeaponKeywords {
   sustainedHits?: number
   /** Lethal Hits: a Critical Hit automatically wounds the target. */
   lethalHits?: boolean
+  /** Devastating Wounds: a Critical Wound allows no saving throw of any kind. */
+  devastatingWounds?: boolean
 }
 
 /** A weapon profile being resolved against a target. */

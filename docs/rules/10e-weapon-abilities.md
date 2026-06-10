@@ -45,10 +45,20 @@ wound, the normal-hit slice rolls to wound. With Sustained Hits X, only the crit
 hit auto-wounds — the X extra hits roll to wound normally. Torrent weapons never
 crit, so the keyword is inert on them.
 
-## Devastating Wounds — planned
+## Devastating Wounds — implemented
 
 > Each time an attack is made with such a weapon, if that attack scores a Critical
 > Wound, no saving throw of any kind can be made against that attack (including
 > invulnerable saving throws).
 
 A Critical Wound is an **unmodified** 6 on the wound roll.
+
+**Engine:** `WeaponKeywords.devastatingWounds` in `types.ts`. Each rolled wound
+splits into its critical slice (bypasses armour and invulnerable saves alike) and
+its normal slice (takes the save); the critical-wound probability comes from
+`critProbability` over the wound threshold, so wound re-rolls raise it. Feel No
+Pain still applies — only the saving throw is bypassed. Lethal Hits' automatic
+wounds never roll, so they are never critical and always take the save. Torrent
+weapons are affected normally: the wound roll is always made, so Critical Wounds
+still occur. Re-rolling successful non-critical wounds to fish for Critical Wounds
+is not modelled (same rational-play assumption as the re-rolls section).

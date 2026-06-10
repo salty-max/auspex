@@ -265,6 +265,78 @@ describe('simulate', () => {
     expect(lethal.mean).toBeCloseTo(simulate(flamer, marine).mean)
   })
 
+  test('Devastating Wounds: the critical-wound slice bypasses the save', () => {
+    const weapon: Weapon = { ...bolter, keywords: { devastatingWounds: true } }
+    // Unsaved per rolled wound: 1/6 + (1/2 − 1/6)(1/3) = 5/18 instead of (1/2)(1/3).
+    const result = simulate(weapon, marine)
+    expect(result.mean).toBeCloseTo(10 * (2 / 3) * (5 / 18))
+  })
+
+  test('Devastating Wounds bypasses invulnerable saves too', () => {
+    const weapon: Weapon = {
+      ...bolter,
+      ap: 3,
+      keywords: { devastatingWounds: true },
+    }
+    const stormShield: Target = {
+      toughness: 4,
+      save: 3,
+      invuln: 4,
+      wounds: 3,
+      models: 1,
+    }
+    // The invuln (fail 1/2) catches normal wounds, never critical ones:
+    // u = 1/6 + (1/2 − 1/6)(1/2) = 1/3 instead of (1/2)(1/2) = 1/4.
+    const result = simulate(weapon, stormShield)
+    expect(result.mean).toBeCloseTo(10 * (2 / 3) * (1 / 3))
+  })
+
+  test('Devastating Wounds applies to torrent weapons (the wound roll is made)', () => {
+    const flamer: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 4,
+      ap: 0,
+      damage: 1,
+      keywords: { devastatingWounds: true },
+    }
+    // Auto-hit, then u = 1/6 + (1/2 − 1/6)(1/3) = 5/18 instead of 1/6 plain.
+    expect(simulate(flamer, marine).mean).toBeCloseTo(5 / 18)
+  })
+
+  test('Devastating + Lethal: the automatic wound still takes the save', () => {
+    // 1 attack BS3+ S4 vs T4, save 3+ (fail 1/3), both keywords, damage 1.
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 3,
+      strength: 4,
+      ap: 0,
+      damage: 1,
+      keywords: { lethalHits: true, devastatingWounds: true },
+    }
+    const d = simulate(weapon, marine).damageDistribution
+    // Normal hit (3/6) wounds-and-passes with u = 5/18; crit hit (1/6) auto-wounds
+    // (never critical, takes the save) with 1/3.
+    expect(d[1]).toBeCloseTo((3 / 6) * (5 / 18) + (1 / 6) * (1 / 3))
+    expect(totalMass(d)).toBeCloseTo(1)
+  })
+
+  test('Devastating Wounds compounds with wound re-rolls through the crit probability', () => {
+    const weapon: Weapon = { ...bolter, keywords: { devastatingWounds: true } }
+    // Re-roll 1s on wounds: pWound = 7/12, pCritWound = 7/36.
+    // u = 7/36 + (7/12 − 7/36)(1/3) = 35/108.
+    const result = simulate(weapon, marine, { rerollWound: 'ones' })
+    expect(result.mean).toBeCloseTo(10 * (2 / 3) * (35 / 108))
+  })
+
+  test('Devastating Wounds does not bypass Feel No Pain', () => {
+    const weapon: Weapon = { ...bolter, keywords: { devastatingWounds: true } }
+    const fnpMarine: Target = { ...marine, feelNoPain: 5 }
+    // FNP applies after the (bypassed) save: the mean scales by 2/3.
+    const result = simulate(weapon, fnpMarine)
+    expect(result.mean).toBeCloseTo(10 * (2 / 3) * (5 / 18) * (2 / 3))
+  })
+
   test('percentile reads quantiles off the damage distribution', () => {
     const result = simulate(bolter, marine)
     expect(result.percentile(0)).toBe(0)
