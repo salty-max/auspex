@@ -409,6 +409,51 @@ describe('simulate', () => {
     expect(totalMass(result.modelsSlainDistribution)).toBeCloseTo(1)
   })
 
+  test('kill probabilities: slain models follow a clean binomial on 1W units', () => {
+    // 2 torrent attacks, S8 vs T4 (wound 5/6), no usable save: each attack kills
+    // one 1W model with 5/6, so slain ~ Binomial(2, 5/6).
+    const weapon: Weapon = {
+      attacks: 2,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 1,
+    }
+    const target: Target = { toughness: 4, save: 6, wounds: 1, models: 2 }
+    const result = simulate(weapon, target)
+    expect(result.meanModelsSlain).toBeCloseTo(2 * (5 / 6))
+    expect(result.probWipes).toBeCloseTo(25 / 36)
+    expect(result.probKillsAtLeast(1)).toBeCloseTo(35 / 36)
+    expect(result.probKillsAtLeast(0)).toBe(1)
+  })
+
+  test('probWipes on a single model is the kill probability', () => {
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 'D6',
+    }
+    const target: Target = { toughness: 4, save: 6, wounds: 2, models: 1 }
+    const result = simulate(weapon, target)
+    // P(unsaved)·P(D6 ≥ 2) = (5/6)(5/6), matching the overkill acceptance value.
+    expect(result.probWipes).toBeCloseTo(25 / 36)
+    expect(result.probWipes).toBeCloseTo(result.probKillsAtLeast(1))
+  })
+
+  test('kill accessors agree with the slain distribution on Marines', () => {
+    const result = simulate(bolter, marine)
+    expect(result.probKillsAtLeast(1)).toBeCloseTo(
+      1 - result.modelsSlainDistribution[0]
+    )
+    const slainMean = result.modelsSlainDistribution.reduce(
+      (sum, p, k) => sum + p * k,
+      0
+    )
+    expect(result.meanModelsSlain).toBeCloseTo(slainMean)
+  })
+
   test('percentile reads quantiles off the damage distribution', () => {
     const result = simulate(bolter, marine)
     expect(result.percentile(0)).toBe(0)

@@ -89,14 +89,18 @@ export function simulate(
 
   // Allocate the wounds through the unit, model by model, losing excess damage.
   const damageDistribution = inflictDamage(unsavedWounds, woundDamage, target)
+  const modelsSlainDistribution = modelsSlain(damageDistribution, target)
 
   return {
     damageDistribution,
-    modelsSlainDistribution: modelsSlain(damageDistribution, target),
+    modelsSlainDistribution,
     mean: mean(damageDistribution),
     variance: variance(damageDistribution),
     probAtLeast: (x) => probAtLeast(damageDistribution, x),
     percentile: (p) => percentile(damageDistribution, p),
+    meanModelsSlain: mean(modelsSlainDistribution),
+    probWipes: probAtLeast(modelsSlainDistribution, target.models),
+    probKillsAtLeast: (n) => probAtLeast(modelsSlainDistribution, n),
   }
 }
 
