@@ -3,6 +3,13 @@
   "tasks": {
     "build": { "dependsOn": ["^build"], "outputs": ["dist/**"] },
     "test": { "dependsOn": ["^build"] },
-    "typecheck": { "dependsOn": ["^build"] }
+    "typecheck": { "dependsOn": ["^build"] },
+    "lint": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint.config.js",
+        "$TURBO_ROOT$/.prettierrc"
+      ]
+    }
   }
 }

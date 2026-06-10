@@ -14,9 +14,15 @@ with package boundaries — see the README for the layout and rationale.
 - **Bun** is the package manager, test runner, and bundler (version pinned in
   `packageManager`). **Turborepo** orchestrates tasks across workspaces.
 - **TypeScript 6, strict**, shared base config in `tsconfig.base.json`. ESM only.
-- **ESLint** (flat config at the root, type-checked rules + JSDoc on `src`, lighter
-  ruleset on `tests`) and **Prettier** (no semicolons, single quotes). Exported
-  declarations carry prose doc comments — `@param`/`@returns` tags are not used.
+- **ESLint** (type-checked rules + JSDoc on `src`, lighter ruleset on `tests`) and
+  **Prettier** (no semicolons, single quotes). Exported declarations carry prose doc
+  comments — `@param`/`@returns` tags are not used.
+- Linting runs **per package** through turbo (each workspace has a `lint` script,
+  so only changed packages relint), but the flat config is **shared at the root** —
+  ESLint resolves it upward. Package-specific rules (e.g. React for `apps/web`) are
+  added as glob blocks in the root config, not as separate config files. The root
+  config and `.prettierrc` are declared as turbo inputs of the `lint` task so
+  editing them busts the cache.
 - **Husky** hooks: pre-commit runs typecheck + lint-staged + tests; commit-msg runs
   commitlint.
 
@@ -24,7 +30,7 @@ with package boundaries — see the README for the layout and rationale.
 bun install
 bun run typecheck   # tsc over src AND tests in every package
 bun test            # bun:test across all packages
-bun run lint        # eslint, zero warnings tolerated (lint:fix to autofix)
+bun run lint        # per-package via turbo, zero warnings (lint:fix to autofix)
 bun run build       # bundles + emits declarations
 bun run format      # prettier over the whole repo
 ```
