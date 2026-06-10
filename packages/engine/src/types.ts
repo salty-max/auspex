@@ -2,6 +2,12 @@ import type { DiceExpr } from './dice'
 import type { Distribution } from './distribution'
 import type { Reroll } from './rules'
 
+/** Weapon abilities ("keywords") that alter the attack sequence. */
+export interface WeaponKeywords {
+  /** Sustained Hits X: a Critical Hit scores `x` additional hits. */
+  sustainedHits?: number
+}
+
 /** A weapon profile being resolved against a target. */
 export interface Weapon {
   /** Number of attacks (Attacks characteristic). */
@@ -14,6 +20,8 @@ export interface Weapon {
   ap: number
   /** Damage characteristic. */
   damage: DiceExpr
+  /** Weapon abilities altering the attack sequence, if any. */
+  keywords?: WeaponKeywords
 }
 
 /** The unit being attacked. */

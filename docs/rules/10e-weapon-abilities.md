@@ -15,13 +15,20 @@ Sources:
 
 **Engine:** `Weapon.skill: 'torrent'` sets the hit probability to 1 in `sequence.ts`.
 
-## Sustained Hits X — planned
+## Sustained Hits X — implemented
 
 > Each time an attack is made with such a weapon, if a Critical Hit is rolled, that
 > attack scores a number of additional hits on the target as denoted by 'x'.
 
 A Critical Hit is an **unmodified** 6, so the extra hits trigger with probability 1/6
-per attack regardless of modifiers.
+per attack regardless of modifiers (more with re-rolls — see the re-rolls section of
+the attack sequence).
+
+**Engine:** `WeaponKeywords.sustainedHits` in `types.ts`. Each attack's hits become a
+three-point distribution (miss / hit / critical hit scoring `1 + X`) instead of a
+Bernoulli trial; the critical probability comes from `critProbability`, so re-rolls
+raise it. Torrent weapons make no hit roll, so they can never score a Critical Hit
+and Sustained Hits is inert on them.
 
 ## Lethal Hits — planned
 

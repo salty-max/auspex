@@ -140,6 +140,72 @@ describe('simulate', () => {
     expect(covered.mean).toBeCloseTo(10 * (2 / 3) * (4 / 6) * (3 / 6))
   })
 
+  test('Sustained Hits: the critical slice scores extra hits', () => {
+    const weapon: Weapon = {
+      ...bolter,
+      keywords: { sustainedHits: 1 },
+    }
+    // Mean hits per attack: P(hit) + X·P(crit) = 4/6 + 1/6 = 5/6.
+    const result = simulate(weapon, marine)
+    expect(result.mean).toBeCloseTo(10 * (5 / 6) * (1 / 2) * (1 / 3))
+  })
+
+  test('Sustained Hits 2 adds two hits per critical', () => {
+    const weapon: Weapon = {
+      ...bolter,
+      keywords: { sustainedHits: 2 },
+    }
+    // Mean hits per attack: 4/6 + 2·(1/6) = 1.
+    expect(simulate(weapon, marine).mean).toBeCloseTo(
+      10 * 1 * (1 / 2) * (1 / 3)
+    )
+  })
+
+  test('Sustained Hits: exact per-attack distribution (issue acceptance values)', () => {
+    // 1 attack, BS3+, Sustained 1: P(0 hits) = 2/6, P(1) = 3/6, P(2 hits) = 1/6.
+    // Against T4 with no usable save (6+ at AP -1), each hit wounds with 1/2,
+    // so the damage distribution exposes the hits distribution through q = 1/2.
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 3,
+      strength: 4,
+      ap: 1,
+      damage: 1,
+      keywords: { sustainedHits: 1 },
+    }
+    const target: Target = { toughness: 4, save: 6, wounds: 1, models: 1 }
+    const d = simulate(weapon, target).damageDistribution
+    // P(2 damage) = P(crit)·q² = (1/6)(1/4); P(1) = (3/6)q + (1/6)·2q(1−q) = 1/3.
+    expect(d[2]).toBeCloseTo((1 / 6) * (1 / 4))
+    expect(d[1]).toBeCloseTo(1 / 3)
+    expect(totalMass(d)).toBeCloseTo(1)
+  })
+
+  test('Sustained Hits compounds with hit re-rolls through the crit probability', () => {
+    const weapon: Weapon = {
+      ...bolter,
+      keywords: { sustainedHits: 1 },
+    }
+    // Re-roll 1s: P(hit) = 7/9, P(crit) = 7/36 → mean hits = 7/9 + 7/36 = 35/36.
+    const result = simulate(weapon, marine, { rerollHit: 'ones' })
+    expect(result.mean).toBeCloseTo(10 * (35 / 36) * (1 / 2) * (1 / 3))
+  })
+
+  test('Sustained Hits is inert on torrent weapons (no hit roll, no crits)', () => {
+    const flamer: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 4,
+      ap: 0,
+      damage: 1,
+    }
+    const sustained = simulate(
+      { ...flamer, keywords: { sustainedHits: 2 } },
+      marine
+    )
+    expect(sustained.mean).toBeCloseTo(simulate(flamer, marine).mean)
+  })
+
   test('percentile reads quantiles off the damage distribution', () => {
     const result = simulate(bolter, marine)
     expect(result.percentile(0)).toBe(0)

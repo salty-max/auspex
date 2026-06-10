@@ -11,6 +11,7 @@ import {
 } from './distribution'
 import {
   atLeastOnD6,
+  critProbability,
   hitProbability,
   saveFailProbability,
   woundProbability,
@@ -24,8 +25,8 @@ import type { Modifiers, SimResult, Target, Weapon } from './types'
  * distributions: number of attacks → hits → wounds → unsaved wounds → damage → Feel No
  * Pain. No dice are rolled — the result is the exact distribution, identical on every run.
  *
- * This is the base sequence: weapon keywords (Sustained/Lethal/Devastating Wounds, …)
- * and per-model overkill are layered on separately.
+ * Implemented keywords: Sustained Hits. Lethal Hits, Devastating Wounds and
+ * per-model overkill are layered on separately.
  */
 export function simulate(
   weapon: Weapon,
@@ -49,12 +50,22 @@ export function simulate(
     cover: mods.cover,
   })
 
-  // Probability a single attack ends as an unsaved wound.
-  const pUnsaved = pHit * pWound * pFail
+  // A torrent weapon makes no hit roll, so it can never score a Critical Hit.
+  const pCrit =
+    weapon.skill === 'torrent'
+      ? 0
+      : critProbability(weapon.skill, mods.hit ?? 0, mods.rerollHit)
+
+  // Probability a single hit ends as an unsaved wound.
+  const pUnsaved = pWound * pFail
+
+  // Hits scored by one attack, then unsaved wounds carried by one attack.
+  const hits = hitsPerAttack(pHit, pCrit, weapon.keywords?.sustainedHits ?? 0)
+  const unsavedPerAttack = compoundBinomial(hits, pUnsaved)
 
   // Distribution over the number of unsaved wounds, accounting for a variable attack count.
   const attacks = diceDistribution(weapon.attacks)
-  const unsavedWounds = compoundBinomial(attacks, pUnsaved)
+  const unsavedWounds = compoundSum(attacks, unsavedPerAttack)
 
   // Damage carried by a single unsaved wound, after Feel No Pain.
   const woundDamage = applyFeelNoPain(
@@ -72,6 +83,24 @@ export function simulate(
     probAtLeast: (x) => probAtLeast(damageDistribution, x),
     percentile: (p) => percentile(damageDistribution, p),
   }
+}
+
+/**
+ * The distribution of hits scored by a single attack. Without Sustained Hits this
+ * is a Bernoulli trial on the hit probability; with Sustained Hits X, the critical
+ * slice of the hit mass scores `1 + X` hits instead of 1.
+ */
+function hitsPerAttack(
+  pHit: number,
+  pCrit: number,
+  sustained: number
+): Distribution {
+  if (sustained <= 0 || pCrit === 0) return [1 - pHit, pHit]
+  const out = new Array<number>(2 + sustained).fill(0)
+  out[0] = 1 - pHit
+  out[1] = pHit - pCrit
+  out[1 + sustained] = pCrit
+  return out
 }
 
 /**
