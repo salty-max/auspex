@@ -50,8 +50,10 @@ auto-success / ±1 clamp as the hit roll.
 > If a model in the target unit has already lost one or more wounds, or has already
 > had attacks allocated to it this phase, that attack must be allocated to that model.
 
-**Engine:** not modelled yet — allocation only matters once per-model wound tracking
-(overkill) is implemented.
+**Engine:** modelled in aggregate by `inflictDamage` in `sequence.ts`: unsaved
+wounds are allocated sequentially, each to the model currently carrying damage,
+which matches the rule for units of identical models. Mixed-wounds units and
+defender-chosen allocation order are not modelled.
 
 ## 4. Saving throw
 
@@ -86,10 +88,12 @@ engine models, so the "+1 at most" cap is satisfied structurally.
 > several wounds from an attack and is destroyed, any excess damage inflicted by that
 > attack is lost and has no effect.
 
-**Engine:** each unsaved wound carries the weapon's Damage distribution and totals are
-summed (`sequence.ts`). The excess-damage ("overkill") rule is **not implemented
-yet** — totals are exact for single-model targets and an upper bound for multi-model
-units where damage can spill past a model's last wound.
+**Engine:** `inflictDamage` in `sequence.ts` walks each unsaved wound's damage
+through the unit: the current model takes at most its remaining wounds (the excess
+is lost), the next wound starts on a fresh model, and a destroyed unit absorbs
+nothing further. `SimResult.damageDistribution` is therefore the damage actually
+inflicted, bounded by `wounds × models`, and `modelsSlainDistribution` is its
+marginal over whole models.
 
 ## Re-rolls
 
