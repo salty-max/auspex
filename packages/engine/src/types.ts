@@ -1,5 +1,6 @@
 import type { DiceExpr } from './dice'
 import type { Distribution } from './distribution'
+import type { Reroll } from './rules'
 
 /** A weapon profile being resolved against a target. */
 export interface Weapon {
@@ -37,6 +38,10 @@ export interface Modifiers {
   hit?: number
   /** Net modifier to the wound roll; values beyond ±1 are clamped. */
   wound?: number
+  /** Re-roll allowance on the hit roll. Ignored for torrent weapons (no hit roll). */
+  rerollHit?: Reroll
+  /** Re-roll allowance on the wound roll. */
+  rerollWound?: Reroll
   /** Whether the target has the Benefit of Cover (ranged attacks only). */
   cover?: boolean
 }

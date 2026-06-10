@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   atLeastOnD6,
+  critProbability,
   hitProbability,
   rollProbability,
   saveFailProbability,
@@ -34,6 +35,48 @@ describe('rollProbability', () => {
   test('the net modifier is clamped to ±1', () => {
     expect(rollProbability(4, 3)).toBeCloseTo(rollProbability(4, 1))
     expect(rollProbability(4, -3)).toBeCloseTo(rollProbability(4, -1))
+  })
+
+  test('re-rolling 1s: 3+ becomes 2/3 + (1/6)(2/3) = 7/9', () => {
+    expect(rollProbability(3, 0, 'ones')).toBeCloseTo(7 / 9)
+    expect(rollProbability(2, 0, 'ones')).toBeCloseTo((5 / 6) * (7 / 6))
+  })
+
+  test('full re-roll: failures get a second chance, 3+ becomes 8/9', () => {
+    expect(rollProbability(3, 0, 'full')).toBeCloseTo(8 / 9)
+    expect(rollProbability(6, 0, 'full')).toBeCloseTo(1 / 6 + (5 / 6) * (1 / 6))
+  })
+
+  test('the re-rolled die takes the same modifier', () => {
+    // 4+ at -1 is 2/6 on one die; a full re-roll compounds the same probability.
+    expect(rollProbability(4, -1, 'full')).toBeCloseTo(
+      2 / 6 + (4 / 6) * (2 / 6)
+    )
+  })
+})
+
+describe('critProbability', () => {
+  test('an unmodified 6 lands with 1/6 regardless of threshold and modifier', () => {
+    expect(critProbability(3)).toBeCloseTo(1 / 6)
+    expect(critProbability(5, -1)).toBeCloseTo(1 / 6)
+  })
+
+  test('re-rolling 1s adds a 1/36 second chance at a 6', () => {
+    expect(critProbability(3, 0, 'ones')).toBeCloseTo(7 / 36)
+  })
+
+  test('a full re-roll lets every would-be failure retry the 6', () => {
+    // BS3+: failures are 1/3 of dice, each re-roll shows a 6 with 1/6.
+    expect(critProbability(3, 0, 'full')).toBeCloseTo(1 / 6 + (1 / 3) * (1 / 6))
+    // A -1 modifier widens the failure mass, so the crit chance rises too.
+    expect(critProbability(3, -1, 'full')).toBeCloseTo(
+      1 / 6 + (1 / 2) * (1 / 6)
+    )
+  })
+
+  test('successes are never re-rolled, so the crit chance stays below 2/6', () => {
+    expect(critProbability(6, 0, 'full')).toBeCloseTo(1 / 6 + (5 / 6) * (1 / 6))
+    expect(critProbability(6, 0, 'full')).toBeLessThan(2 / 6)
   })
 })
 

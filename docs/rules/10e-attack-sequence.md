@@ -91,6 +91,28 @@ summed (`sequence.ts`). The excess-damage ("overkill") rule is **not implemented
 yet** — totals are exact for single-model targets and an upper bound for multi-model
 units where damage can spill past a model's last wound.
 
+## Re-rolls
+
+> Some rules allow you to re-roll a dice roll, which means you get to roll some or
+> all of the dice again. If a rule allows you to re-roll a dice roll that was made by
+> adding several dice together (e.g. 2D6, 3D6, etc.) then, unless otherwise stated,
+> you must re-roll all of those dice again.
+
+> You can never re-roll a dice more than once, and re-rolls happen before modifiers
+> (if any) are applied. Rules that refer to the value of an 'unmodified' dice roll
+> are referring to the dice result after any re-rolls, but before any modifiers are
+> applied.
+
+**Engine:** `rollProbability` / `critProbability` in `rules.ts` accept a re-roll
+allowance, `'ones'` (re-roll unmodified 1s) or `'full'` (re-roll the roll), wired
+into the hit and wound stages via `Modifiers.rerollHit` / `Modifiers.rerollWound`.
+Each die is re-rolled at most once and the re-rolled die takes the same modifier.
+The engine assumes rational play: under `'full'`, exactly the dice that would fail
+(after modifiers) are re-rolled. Re-rolling successful non-6s to fish for critical
+hits (relevant once Sustained/Lethal Hits land) is not modelled yet. A critical is
+an unmodified 6 **after** any re-roll, so re-rolls raise the critical probability —
+`critProbability` accounts for this.
+
 ## Feel No Pain
 
 > Each time a model with this ability suffers damage and so would lose a wound

@@ -4,12 +4,17 @@
  */
 
 /**
- * The probability that a single d6 roll of `threshold`+ succeeds, honouring the
- * "unmodified 1 always fails, unmodified 6 always succeeds" convention used for hit
- * and wound rolls. A `modifier` is applied to the rolled value; hit and wound rolls
- * can never be modified by more than ±1, so the net modifier is clamped.
+ * A re-roll allowance on a hit or wound roll: `'ones'` re-rolls unmodified 1s,
+ * `'full'` re-rolls any die. Each die is re-rolled at most once.
  */
-export function rollProbability(threshold: number, modifier = 0): number {
+export type Reroll = 'ones' | 'full'
+
+/**
+ * The probability that one d6 (rolled once, no re-roll) of `threshold`+ succeeds,
+ * honouring the "unmodified 1 always fails, unmodified 6 always succeeds" convention
+ * used for hit and wound rolls. The net modifier is clamped to ±1.
+ */
+function singleRollProbability(threshold: number, modifier: number): number {
   const mod = Math.max(-1, Math.min(1, modifier))
   let successes = 0
   for (let face = 1; face <= 6; face++) {
@@ -23,6 +28,43 @@ export function rollProbability(threshold: number, modifier = 0): number {
   return successes / 6
 }
 
+/**
+ * The probability that a hit/wound-style d6 roll of `threshold`+ succeeds, with a
+ * `modifier` applied to the rolled value (net clamp ±1) and an optional re-roll.
+ *
+ * Re-rolls assume rational play: under `'ones'` the unmodified 1 (always a failure)
+ * is re-rolled, under `'full'` exactly the dice that would fail after modifiers are
+ * re-rolled. The re-rolled die takes the same modifier and is never re-rolled again.
+ */
+export function rollProbability(
+  threshold: number,
+  modifier = 0,
+  reroll?: Reroll
+): number {
+  const p = singleRollProbability(threshold, modifier)
+  if (reroll === 'ones') return p + p / 6
+  if (reroll === 'full') return p + (1 - p) * p
+  return p
+}
+
+/**
+ * The probability that a hit/wound-style roll lands a critical — an unmodified 6
+ * after any re-roll. Re-rolled dice (unmodified 1s for `'ones'`, would-be failures
+ * for `'full'`) show a 6 with probability 1/6, raising the critical chance.
+ */
+export function critProbability(
+  threshold: number,
+  modifier = 0,
+  reroll?: Reroll
+): number {
+  if (reroll === 'ones') return 1 / 6 + 1 / 36
+  if (reroll === 'full') {
+    const p = singleRollProbability(threshold, modifier)
+    return 1 / 6 + (1 - p) / 6
+  }
+  return 1 / 6
+}
+
 /** The probability that a single d6 simply shows `threshold` or higher (no auto rules). */
 export function atLeastOnD6(threshold: number): number {
   if (threshold <= 1) return 1
@@ -30,9 +72,13 @@ export function atLeastOnD6(threshold: number): number {
   return (7 - threshold) / 6
 }
 
-/** Probability that one attack hits, given the weapon's skill (BS/WS) and a hit modifier. */
-export function hitProbability(skill: number, hitModifier = 0): number {
-  return rollProbability(skill, hitModifier)
+/** Probability that one attack hits, given the weapon's skill (BS/WS), a hit modifier and an optional re-roll. */
+export function hitProbability(
+  skill: number,
+  hitModifier = 0,
+  reroll?: Reroll
+): number {
+  return rollProbability(skill, hitModifier, reroll)
 }
 
 /**
@@ -52,13 +98,18 @@ export function woundThreshold(strength: number, toughness: number): number {
   return 5
 }
 
-/** Probability that one hit wounds, given strength, toughness and a wound modifier. */
+/** Probability that one hit wounds, given strength, toughness, a wound modifier and an optional re-roll. */
 export function woundProbability(
   strength: number,
   toughness: number,
-  woundModifier = 0
+  woundModifier = 0,
+  reroll?: Reroll
 ): number {
-  return rollProbability(woundThreshold(strength, toughness), woundModifier)
+  return rollProbability(
+    woundThreshold(strength, toughness),
+    woundModifier,
+    reroll
+  )
 }
 
 /** Inputs controlling the saving throw. */

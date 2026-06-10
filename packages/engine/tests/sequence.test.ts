@@ -100,6 +100,31 @@ describe('simulate', () => {
     expect(result.mean).toBeCloseTo(10 * (1 / 2) * (1 / 2) * (1 / 3))
   })
 
+  test('hit re-rolls flow into the hit roll', () => {
+    const result = simulate(bolter, marine, { rerollHit: 'ones' })
+    // P(hit) rises from 2/3 to 7/9.
+    expect(result.mean).toBeCloseTo(10 * (7 / 9) * (1 / 2) * (1 / 3))
+  })
+
+  test('wound re-rolls flow into the wound roll', () => {
+    const result = simulate(bolter, marine, { rerollWound: 'full' })
+    // P(wound) rises from 1/2 to 1/2 + (1/2)(1/2) = 3/4.
+    expect(result.mean).toBeCloseTo(10 * (2 / 3) * (3 / 4) * (1 / 3))
+  })
+
+  test('torrent weapons ignore hit re-rolls (no hit roll is made)', () => {
+    const flamer: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 4,
+      ap: 0,
+      damage: 1,
+    }
+    const plain = simulate(flamer, marine)
+    const rerolled = simulate(flamer, marine, { rerollHit: 'full' })
+    expect(rerolled.mean).toBeCloseTo(plain.mean)
+  })
+
   test('wound modifiers flow into the wound roll', () => {
     const result = simulate(bolter, marine, { wound: 1 })
     // S4 vs T4 at +1 wounds on faces 3..5 plus the 6: 4/6.

@@ -33,11 +33,14 @@ export function simulate(
   mods: Modifiers = {}
 ): SimResult {
   const pHit =
-    weapon.skill === 'torrent' ? 1 : hitProbability(weapon.skill, mods.hit ?? 0)
+    weapon.skill === 'torrent'
+      ? 1
+      : hitProbability(weapon.skill, mods.hit ?? 0, mods.rerollHit)
   const pWound = woundProbability(
     weapon.strength,
     target.toughness,
-    mods.wound ?? 0
+    mods.wound ?? 0,
+    mods.rerollWound
   )
   const pFail = saveFailProbability({
     save: target.save,
