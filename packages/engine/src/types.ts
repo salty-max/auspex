@@ -68,6 +68,12 @@ export interface SimResult {
   damageDistribution: Distribution
   /** The distribution of the number of models slain (support `0..models`). */
   modelsSlainDistribution: Distribution
+  /** Expected number of models slain. */
+  meanModelsSlain: number
+  /** The probability that the whole unit is destroyed. */
+  probWipes: number
+  /** The probability of slaying at least `n` models. */
+  probKillsAtLeast(n: number): number
   /** Expected (mean) damage dealt. */
   mean: number
   /** Variance of the damage dealt. */
