@@ -8,7 +8,7 @@ import { convolve, die, type Distribution, point, shift } from './distribution'
  */
 export type DiceExpr = number | string
 
-const DICE_PATTERN = /^(\d*)[dD](\d+)([+-]\d+)?$/
+const DICE_PATTERN = /^(\d*)d(\d+)([+-]\d+)?$/i
 
 /** Resolve a dice expression to the distribution of its outcome. */
 export function diceDistribution(expr: DiceExpr): Distribution {

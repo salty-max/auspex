@@ -53,7 +53,11 @@ export function woundThreshold(strength: number, toughness: number): number {
 }
 
 /** Probability that one hit wounds, given strength, toughness and a wound modifier. */
-export function woundProbability(strength: number, toughness: number, woundModifier = 0): number {
+export function woundProbability(
+  strength: number,
+  toughness: number,
+  woundModifier = 0
+): number {
   return rollProbability(woundThreshold(strength, toughness), woundModifier)
 }
 
@@ -76,7 +80,12 @@ export interface SaveContext {
  * invulnerable save. Cover cannot improve an armour save that is already 3+ or better
  * against an AP 0 attack.
  */
-export function saveFailProbability({ save, invuln, ap, cover = false }: SaveContext): number {
+export function saveFailProbability({
+  save,
+  invuln,
+  ap,
+  cover = false,
+}: SaveContext): number {
   let armour = save + ap
   if (cover && !(ap === 0 && save <= 3)) {
     armour -= 1

@@ -97,25 +97,39 @@ describe('saveFailProbability', () => {
   })
 
   test('the invulnerable save caps the damage of high AP', () => {
-    expect(saveFailProbability({ save: 3, ap: 3, invuln: 4 })).toBeCloseTo(3 / 6)
+    expect(saveFailProbability({ save: 3, ap: 3, invuln: 4 })).toBeCloseTo(
+      3 / 6
+    )
   })
 
   test('the invulnerable save is ignored when the armour save is better', () => {
-    expect(saveFailProbability({ save: 2, ap: 0, invuln: 4 })).toBeCloseTo(1 / 6)
+    expect(saveFailProbability({ save: 2, ap: 0, invuln: 4 })).toBeCloseTo(
+      1 / 6
+    )
   })
 
   test('cover improves the armour save by one', () => {
-    expect(saveFailProbability({ save: 4, ap: 0, cover: true })).toBeCloseTo(2 / 6)
-    expect(saveFailProbability({ save: 4, ap: 1, cover: true })).toBeCloseTo(3 / 6)
+    expect(saveFailProbability({ save: 4, ap: 0, cover: true })).toBeCloseTo(
+      2 / 6
+    )
+    expect(saveFailProbability({ save: 4, ap: 1, cover: true })).toBeCloseTo(
+      3 / 6
+    )
   })
 
   test('cover cannot improve a 3+ or better save against AP 0', () => {
-    expect(saveFailProbability({ save: 3, ap: 0, cover: true })).toBeCloseTo(2 / 6)
-    expect(saveFailProbability({ save: 2, ap: 0, cover: true })).toBeCloseTo(1 / 6)
+    expect(saveFailProbability({ save: 3, ap: 0, cover: true })).toBeCloseTo(
+      2 / 6
+    )
+    expect(saveFailProbability({ save: 2, ap: 0, cover: true })).toBeCloseTo(
+      1 / 6
+    )
   })
 
   test('cover applies to a 3+ save once the attack has AP', () => {
-    expect(saveFailProbability({ save: 3, ap: 1, cover: true })).toBeCloseTo(2 / 6)
+    expect(saveFailProbability({ save: 3, ap: 1, cover: true })).toBeCloseTo(
+      2 / 6
+    )
   })
 
   test('a natural 1 always fails: the save never gets better than 2+', () => {

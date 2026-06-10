@@ -35,20 +35,38 @@ describe('simulate', () => {
   })
 
   test('torrent weapons skip the hit roll', () => {
-    const flamer: Weapon = { attacks: 1, skill: 'torrent', strength: 4, ap: 0, damage: 1 }
+    const flamer: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 4,
+      ap: 0,
+      damage: 1,
+    }
     // 1 × P(wound) 1/2 × P(fail save) 1/3
     expect(simulate(flamer, marine).mean).toBeCloseTo(1 / 6)
   })
 
   test('a variable attack count contributes its mean', () => {
     // Torrent, S8 vs T4 wounds on 2+ (5/6); a 6+ save at AP -2 always fails.
-    const weapon: Weapon = { attacks: 'D6', skill: 'torrent', strength: 8, ap: 2, damage: 1 }
+    const weapon: Weapon = {
+      attacks: 'D6',
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 1,
+    }
     const target: Target = { toughness: 4, save: 6, wounds: 1, models: 10 }
     expect(simulate(weapon, target).mean).toBeCloseTo(3.5 * (5 / 6))
   })
 
   test('variable damage convolves per unsaved wound', () => {
-    const weapon: Weapon = { attacks: 1, skill: 'torrent', strength: 8, ap: 2, damage: 'D3' }
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 'D3',
+    }
     const target: Target = { toughness: 4, save: 6, wounds: 3, models: 1 }
     const result = simulate(weapon, target)
     // P(unsaved) = 5/6, then a flat D3 of damage.
@@ -58,8 +76,20 @@ describe('simulate', () => {
   })
 
   test('Feel No Pain scales each damage point independently', () => {
-    const weapon: Weapon = { attacks: 1, skill: 'torrent', strength: 8, ap: 2, damage: 'D3' }
-    const target: Target = { toughness: 4, save: 6, feelNoPain: 5, wounds: 3, models: 1 }
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 'D3',
+    }
+    const target: Target = {
+      toughness: 4,
+      save: 6,
+      feelNoPain: 5,
+      wounds: 3,
+      models: 1,
+    }
     // A 5+ FNP ignores each point with probability 1/3, so the mean scales by 2/3.
     expect(simulate(weapon, target).mean).toBeCloseTo((5 / 6) * 2 * (2 / 3))
   })
@@ -94,7 +124,13 @@ describe('simulate', () => {
   })
 
   test('zero damage is certain when there are zero attacks', () => {
-    const weapon: Weapon = { attacks: 0, skill: 3, strength: 4, ap: 0, damage: 1 }
+    const weapon: Weapon = {
+      attacks: 0,
+      skill: 3,
+      strength: 4,
+      ap: 0,
+      damage: 1,
+    }
     const result = simulate(weapon, marine)
     expect(result.damageDistribution).toEqual([1])
     expect(result.mean).toBe(0)

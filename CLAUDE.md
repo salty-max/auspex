@@ -14,17 +14,23 @@ with package boundaries — see the README for the layout and rationale.
 - **Bun** is the package manager, test runner, and bundler (version pinned in
   `packageManager`). **Turborepo** orchestrates tasks across workspaces.
 - **TypeScript 6, strict**, shared base config in `tsconfig.base.json`. ESM only.
-- No linter yet; when one lands it plugs into the existing `lint` turbo task.
+- **ESLint** (flat config at the root, type-checked rules + JSDoc on `src`, lighter
+  ruleset on `tests`) and **Prettier** (no semicolons, single quotes). Exported
+  declarations carry prose doc comments — `@param`/`@returns` tags are not used.
+- **Husky** hooks: pre-commit runs typecheck + lint-staged + tests; commit-msg runs
+  commitlint.
 
 ```sh
 bun install
 bun run typecheck   # tsc over src AND tests in every package
 bun test            # bun:test across all packages
+bun run lint        # eslint, zero warnings tolerated (lint:fix to autofix)
 bun run build       # bundles + emits declarations
+bun run format      # prettier over the whole repo
 ```
 
-Run all three locally before every push — CI is the safety net, not the iteration
-loop.
+Run typecheck, test, lint and build locally before every push — CI is the safety
+net, not the iteration loop.
 
 ## Rules accuracy (the project's core invariant)
 
@@ -65,8 +71,11 @@ approximations.
 
 ## Git & PRs
 
-- Conventional commits, in English. Pick the type by what changed: `feat`/`fix`
-  for engine behavior, `docs`, `test`, `ci`, `build`, `refactor` for the rest.
+- Conventional commits, in English, **scope required** (enforced by commitlint).
+  Workspace scopes are auto-generated from `packages/` and `apps/` directories;
+  `deps`, `tooling`, `ci`, `docs` and `meta` are hand-listed for everything else.
+  Pick the type by what changed: `feat`/`fix` for engine behavior, `docs`, `test`,
+  `ci`, `build`, `refactor` for the rest.
 - No AI attribution: no `Co-Authored-By: Claude`, no "Generated with" footers, in
   commits or PR descriptions.
 - Use `Closes #N` / `Fixes #N` in PR descriptions so issues auto-close.

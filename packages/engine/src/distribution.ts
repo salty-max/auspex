@@ -8,14 +8,14 @@ export type Distribution = readonly number[]
 
 /** A distribution with all of its mass on a single value. */
 export function point(value: number): Distribution {
-  const d = new Array(value + 1).fill(0)
+  const d = new Array<number>(value + 1).fill(0)
   d[value] = 1
   return d
 }
 
 /** The uniform distribution over the faces of a single `sides`-sided die (1..sides). */
 export function die(sides: number): Distribution {
-  const d = new Array(sides + 1).fill(0)
+  const d = new Array<number>(sides + 1).fill(0)
   for (let face = 1; face <= sides; face++) {
     d[face] = 1 / sides
   }
@@ -27,7 +27,7 @@ export function die(sides: number): Distribution {
  * variables drawn from `a` and `b`.
  */
 export function convolve(a: Distribution, b: Distribution): Distribution {
-  const out = new Array(a.length + b.length - 1).fill(0)
+  const out = new Array<number>(a.length + b.length - 1).fill(0)
   for (let i = 0; i < a.length; i++) {
     if (a[i] === 0) continue
     for (let j = 0; j < b.length; j++) {
@@ -40,7 +40,7 @@ export function convolve(a: Distribution, b: Distribution): Distribution {
 /** Shift every value by `offset`, clamping into index 0 when the result would be negative. */
 export function shift(d: Distribution, offset: number): Distribution {
   if (offset === 0) return d
-  const out = new Array(Math.max(1, d.length + offset)).fill(0)
+  const out = new Array<number>(Math.max(1, d.length + offset)).fill(0)
   for (let i = 0; i < d.length; i++) {
     out[Math.max(0, i + offset)] += d[i]
   }
@@ -56,7 +56,7 @@ export function binomial(n: number, p: number): Distribution {
   if (p >= 1) return point(n)
   if (p <= 0) return point(0)
 
-  const out = new Array(n + 1).fill(0)
+  const out = new Array<number>(n + 1).fill(0)
   let term = (1 - p) ** n
   out[0] = term
   for (let k = 1; k <= n; k++) {

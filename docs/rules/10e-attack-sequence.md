@@ -30,13 +30,13 @@ net modifier is clamped to ±1. Torrent weapons skip the roll entirely (see
 
 ## 2. Wound roll
 
-| Strength vs Toughness                  | Wound on |
-| -------------------------------------- | -------- |
-| S is twice (or more than twice) T      | 2+       |
-| S is greater than T                    | 3+       |
-| S is equal to T                        | 4+       |
-| S is less than T                       | 5+       |
-| S is half (or less than half) T        | 6+       |
+| Strength vs Toughness             | Wound on |
+| --------------------------------- | -------- |
+| S is twice (or more than twice) T | 2+       |
+| S is greater than T               | 3+       |
+| S is equal to T                   | 4+       |
+| S is less than T                  | 5+       |
+| S is half (or less than half) T   | 6+       |
 
 - > An unmodified Wound roll of 6 is called a Critical Wound and is always successful.
 - > An unmodified Wound roll of 1 always fails.
@@ -62,7 +62,7 @@ auto-success / ±1 clamp as the hit roll.
 - > A saving throw can never be improved by more than +1.
 - Invulnerable saves: > invulnerable saving throws are never modified by an attack's
   > Armour Penetration characteristic.
-  The model uses whichever save (armour or invulnerable) gives the better result.
+- The model uses whichever save (armour or invulnerable) gives the better result.
 
 ### Benefit of Cover
 

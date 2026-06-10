@@ -11,7 +11,9 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --sourcemap --target=browser --format=esm && tsc --emitDeclarationOnly -p tsconfig.json",

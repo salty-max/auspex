@@ -27,9 +27,18 @@ import type { Modifiers, SimResult, Target, Weapon } from './types'
  * This is the base sequence: weapon keywords (Sustained/Lethal/Devastating Wounds, …)
  * and per-model overkill are layered on separately.
  */
-export function simulate(weapon: Weapon, target: Target, mods: Modifiers = {}): SimResult {
-  const pHit = weapon.skill === 'torrent' ? 1 : hitProbability(weapon.skill, mods.hit ?? 0)
-  const pWound = woundProbability(weapon.strength, target.toughness, mods.wound ?? 0)
+export function simulate(
+  weapon: Weapon,
+  target: Target,
+  mods: Modifiers = {}
+): SimResult {
+  const pHit =
+    weapon.skill === 'torrent' ? 1 : hitProbability(weapon.skill, mods.hit ?? 0)
+  const pWound = woundProbability(
+    weapon.strength,
+    target.toughness,
+    mods.wound ?? 0
+  )
   const pFail = saveFailProbability({
     save: target.save,
     invuln: target.invuln,
@@ -45,7 +54,10 @@ export function simulate(weapon: Weapon, target: Target, mods: Modifiers = {}): 
   const unsavedWounds = compoundBinomial(attacks, pUnsaved)
 
   // Damage carried by a single unsaved wound, after Feel No Pain.
-  const woundDamage = applyFeelNoPain(diceDistribution(weapon.damage), target.feelNoPain)
+  const woundDamage = applyFeelNoPain(
+    diceDistribution(weapon.damage),
+    target.feelNoPain
+  )
 
   // Total damage = the sum of `unsavedWounds` independent wound-damage rolls.
   const damageDistribution = compoundSum(unsavedWounds, woundDamage)
@@ -99,7 +111,10 @@ function compoundSum(count: Distribution, term: Distribution): Distribution {
  * Apply Feel No Pain to a single wound's damage: each point of damage is independently
  * ignored on a `feelNoPain`+ roll, so the surviving damage is `Binomial(d, survive)`.
  */
-function applyFeelNoPain(damage: Distribution, feelNoPain?: number): Distribution {
+function applyFeelNoPain(
+  damage: Distribution,
+  feelNoPain?: number
+): Distribution {
   if (feelNoPain === undefined) return damage
 
   const survive = 1 - atLeastOnD6(feelNoPain)
