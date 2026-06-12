@@ -15,6 +15,21 @@ Sources:
 
 **Engine:** `Weapon.skill: 'torrent'` sets the hit probability to 1 in `sequence.ts`.
 
+## Blast — implemented
+
+> Each time you determine how many attacks are made with a Blast weapon, add 1 to
+> the result for every five models that were in the target unit when you selected
+> it as the target (rounding down).
+
+> Blast weapons can never be used to make attacks against a unit that is within
+> Engagement Range of one or more units from the attacking model's army (including
+> its own unit).
+
+**Engine:** `WeaponKeywords.blast` in `types.ts`. The attack distribution shifts up
+by `floor(target.models / 5)` before the hit stage. The Engagement Range targeting
+restriction is a legality question, not a math one — enforcing it is the caller's
+responsibility.
+
 ## Sustained Hits X — implemented
 
 > Each time an attack is made with such a weapon, if a Critical Hit is rolled, that

@@ -8,6 +8,7 @@ import {
   percentile,
   point,
   probAtLeast,
+  shift,
   variance,
 } from './distribution'
 import {
@@ -36,7 +37,7 @@ import type {
  * Damage is allocated model by model: each unsaved wound's damage is capped at the
  * current model's remaining wounds (excess is lost), and a destroyed unit absorbs
  * nothing further. Implemented keywords: Sustained Hits, Lethal Hits, Devastating
- * Wounds.
+ * Wounds, Blast.
  */
 export function simulate(
   weapon: Weapon,
@@ -78,8 +79,10 @@ export function simulate(
     weapon.keywords
   )
 
-  // Distribution over the number of unsaved wounds, accounting for a variable attack count.
-  const attacks = diceDistribution(weapon.attacks)
+  // Distribution over the number of unsaved wounds, accounting for a variable
+  // attack count. Blast grants +1 attack per five models in the target unit.
+  const blastBonus = weapon.keywords?.blast ? Math.floor(target.models / 5) : 0
+  const attacks = shift(diceDistribution(weapon.attacks), blastBonus)
   const unsavedWounds = compoundSum(attacks, perAttack)
 
   // Damage carried by a single unsaved wound, after Feel No Pain.

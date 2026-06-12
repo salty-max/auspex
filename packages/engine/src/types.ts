@@ -10,6 +10,8 @@ export interface WeaponKeywords {
   lethalHits?: boolean
   /** Devastating Wounds: a Critical Wound allows no saving throw of any kind. */
   devastatingWounds?: boolean
+  /** Blast: +1 attack for every five models in the target unit (rounding down). */
+  blast?: boolean
 }
 
 /** A weapon profile being resolved against a target. */
