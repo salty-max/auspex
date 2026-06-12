@@ -15,6 +15,25 @@ Sources:
 
 **Engine:** `Weapon.skill: 'torrent'` sets the hit probability to 1 in `sequence.ts`.
 
+## Anti-KEYWORD X+ — implemented
+
+> Weapons with [ANTI-KEYWORD X+] in their profile are known as Anti weapons. Each
+> time an attack is made with such a weapon against a target with the keyword after
+> the word 'Anti-', an unmodified Wound roll of 'x+' scores a Critical Wound.
+
+The Core Rules' own example confirms a Critical Wound from Anti "and so
+successfully wound[s]" — the critical faces succeed even when the
+strength-versus-toughness chart would fail them, and modifiers cannot take that
+away (the roll is unmodified).
+
+**Engine:** `WeaponKeywords.anti` holds the X+ threshold; matching the target's
+keyword is the caller's job via `Modifiers.antiActive` (the engine has no keyword
+system). The threshold feeds `critProbability` AND the wound success probability,
+so it composes with Devastating Wounds (more bypassing crits), wound re-rolls
+(re-rolled dice can land criticals at the lower threshold) and Lethal Hits
+(auto-wounds still never critical). The threshold is clamped to 2..6 — an
+unmodified 1 always fails and a 6 is always critical.
+
 ## Blast — implemented
 
 > Each time you determine how many attacks are made with a Blast weapon, add 1 to

@@ -10,17 +10,31 @@
 export type Reroll = 'ones' | 'full'
 
 /**
+ * The unmodified faces that score a critical, clamped to 2..6: an unmodified 1
+ * always fails (so it can never be critical), and an unmodified 6 always is.
+ */
+function clampCritOn(critOn: number): number {
+  return Math.min(6, Math.max(2, critOn))
+}
+
+/**
  * The probability that one d6 (rolled once, no re-roll) of `threshold`+ succeeds,
  * honouring the "unmodified 1 always fails, unmodified 6 always succeeds" convention
- * used for hit and wound rolls. The net modifier is clamped to ±1.
+ * used for hit and wound rolls. The net modifier is clamped to ±1. Unmodified faces
+ * of `critOn`+ are critical and always succeed regardless of modifiers.
  */
-function singleRollProbability(threshold: number, modifier: number): number {
+function singleRollProbability(
+  threshold: number,
+  modifier: number,
+  critOn = 6
+): number {
   const mod = Math.max(-1, Math.min(1, modifier))
+  const crit = clampCritOn(critOn)
   let successes = 0
   for (let face = 1; face <= 6; face++) {
     if (face === 1) continue // unmodified 1 always fails
-    if (face === 6) {
-      successes++ // unmodified 6 always succeeds
+    if (face >= crit) {
+      successes++ // a critical always succeeds (an unmodified 6 always is one)
       continue
     }
     if (face + mod >= threshold) successes++
@@ -31,6 +45,7 @@ function singleRollProbability(threshold: number, modifier: number): number {
 /**
  * The probability that a hit/wound-style d6 roll of `threshold`+ succeeds, with a
  * `modifier` applied to the rolled value (net clamp ±1) and an optional re-roll.
+ * `critOn` lowers the critical threshold (Anti weapons); criticals always succeed.
  *
  * Re-rolls assume rational play: under `'ones'` the unmodified 1 (always a failure)
  * is re-rolled, under `'full'` exactly the dice that would fail after modifiers are
@@ -39,30 +54,34 @@ function singleRollProbability(threshold: number, modifier: number): number {
 export function rollProbability(
   threshold: number,
   modifier = 0,
-  reroll?: Reroll
+  reroll?: Reroll,
+  critOn = 6
 ): number {
-  const p = singleRollProbability(threshold, modifier)
+  const p = singleRollProbability(threshold, modifier, critOn)
   if (reroll === 'ones') return p + p / 6
   if (reroll === 'full') return p + (1 - p) * p
   return p
 }
 
 /**
- * The probability that a hit/wound-style roll lands a critical — an unmodified 6
- * after any re-roll. Re-rolled dice (unmodified 1s for `'ones'`, would-be failures
- * for `'full'`) show a 6 with probability 1/6, raising the critical chance.
+ * The probability that a hit/wound-style roll lands a critical — an unmodified
+ * `critOn`+ after any re-roll. Re-rolled dice (unmodified 1s for `'ones'`,
+ * would-be failures for `'full'`) land a critical with the single-roll critical
+ * probability, raising the overall chance.
  */
 export function critProbability(
   threshold: number,
   modifier = 0,
-  reroll?: Reroll
+  reroll?: Reroll,
+  critOn = 6
 ): number {
-  if (reroll === 'ones') return 1 / 6 + 1 / 36
+  const c = (7 - clampCritOn(critOn)) / 6
+  if (reroll === 'ones') return c + c / 6
   if (reroll === 'full') {
-    const p = singleRollProbability(threshold, modifier)
-    return 1 / 6 + (1 - p) / 6
+    const p = singleRollProbability(threshold, modifier, critOn)
+    return c + (1 - p) * c
   }
-  return 1 / 6
+  return c
 }
 
 /** The probability that a single d6 simply shows `threshold` or higher (no auto rules). */
@@ -98,17 +117,23 @@ export function woundThreshold(strength: number, toughness: number): number {
   return 5
 }
 
-/** Probability that one hit wounds, given strength, toughness, a wound modifier and an optional re-roll. */
+/**
+ * Probability that one hit wounds, given strength, toughness, a wound modifier and
+ * an optional re-roll. `critOn` lowers the Critical Wound threshold (Anti weapons);
+ * a Critical Wound always succeeds, even past an unfavourable toughness chart.
+ */
 export function woundProbability(
   strength: number,
   toughness: number,
   woundModifier = 0,
-  reroll?: Reroll
+  reroll?: Reroll,
+  critOn = 6
 ): number {
   return rollProbability(
     woundThreshold(strength, toughness),
     woundModifier,
-    reroll
+    reroll,
+    critOn
   )
 }
 

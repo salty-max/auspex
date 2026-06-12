@@ -553,6 +553,49 @@ describe('simulate', () => {
     expect(result.mean).toBeCloseTo((5 / 6) * 5.5 * (2 / 3), 10)
   })
 
+  test('Anti: critical wounds on the lower threshold also auto-wound', () => {
+    // S4 vs T8 wounds on 6+, but Anti 5+ makes faces 5 and 6 critical successes.
+    const weapon: Weapon = {
+      ...bolter,
+      keywords: { anti: 5 },
+    }
+    const tank: Target = { toughness: 8, save: 6, wounds: 12, models: 1 }
+    const anti = simulate(weapon, tank, { antiActive: true })
+    const plain = simulate(bolter, tank)
+    expect(anti.mean).toBeCloseTo(10 * (2 / 3) * (2 / 6) * (5 / 6), 10)
+    expect(plain.mean).toBeCloseTo(10 * (2 / 3) * (1 / 6) * (5 / 6), 10)
+  })
+
+  test('Anti is inert when the target keyword does not match', () => {
+    const weapon: Weapon = { ...bolter, keywords: { anti: 4 } }
+    const plain = simulate(bolter, marine)
+    expect(simulate(weapon, marine).mean).toBeCloseTo(plain.mean, 10)
+  })
+
+  test('Anti + Devastating: every successful wound below the chart is a bypassing crit', () => {
+    // S4 vs T4 wounds on 4+ and Anti 4+ makes every success critical:
+    // with Devastating, all of them bypass the 3+ save entirely.
+    const weapon: Weapon = {
+      ...bolter,
+      keywords: { anti: 4, devastatingWounds: true },
+    }
+    const result = simulate(weapon, marine, { antiActive: true })
+    expect(result.mean).toBeCloseTo(10 * (2 / 3) * (1 / 2), 10)
+  })
+
+  test('Anti + Devastating + wound re-rolls compound on the lower threshold', () => {
+    const weapon: Weapon = {
+      ...bolter,
+      keywords: { anti: 4, devastatingWounds: true },
+    }
+    // Re-roll 1s: pWound = pCritWound = (1/2)(7/6) = 7/12 → all bypass the save.
+    const result = simulate(weapon, marine, {
+      antiActive: true,
+      rerollWound: 'ones',
+    })
+    expect(result.mean).toBeCloseTo(10 * (2 / 3) * (7 / 12), 10)
+  })
+
   test('percentile reads quantiles off the damage distribution', () => {
     const result = simulate(bolter, marine)
     expect(result.percentile(0)).toBe(0)
