@@ -1,0 +1,17 @@
+# Hand-edited patches applied at bake time. Every entry needs a reason; an
+# entry whose datasheet no longer exists fails the bake (remove stale patches).
+
+- datasheet: thunderfire-cannon-legends
+  reason: >-
+    BSData prints the Servo Arms WS as "3" instead of "3+", so the importer
+    rejects the profile. Re-added with the WS from the printed datasheet.
+  addWeapons:
+    - name: Gunner's Servo Arms
+      kind: melee
+      attacks: 2
+      skill: 3
+      strength: 8
+      ap: 2
+      damage: 3
+      abilities:
+        other: []

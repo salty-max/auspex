@@ -1,0 +1,34 @@
+{
+  "name": "@auspex/data",
+  "version": "0.0.0",
+  "description": "Baked faction data: BSData catalogues imported into a queryable SQLite artifact with provenance and YAML overrides",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --sourcemap --target=bun --format=esm --packages external && tsc --emitDeclarationOnly -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "lint": "eslint . --max-warnings 0",
+    "test": "bun test",
+    "bake": "bun run scripts/bake.ts"
+  },
+  "dependencies": {
+    "@auspex/importer": "workspace:*",
+    "@auspex/schema": "workspace:*",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@auspex/engine": "workspace:*",
+    "bun-types": "^1.3.13",
+    "typescript": "^6.0.3"
+  }
+}
