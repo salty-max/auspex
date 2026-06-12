@@ -91,6 +91,51 @@ describe('critProbability', () => {
   })
 })
 
+describe('critOn (Anti weapons)', () => {
+  test('critical faces always succeed, past an unfavourable threshold', () => {
+    // Wound on 6+ but crits on 4+: faces 4, 5, 6 all succeed.
+    expect(rollProbability(6, 0, undefined, 4)).toBeCloseTo(3 / 6, 10)
+    // Modifiers cannot remove criticals (the roll is unmodified).
+    expect(rollProbability(6, -1, undefined, 4)).toBeCloseTo(3 / 6, 10)
+  })
+
+  test('a lower crit threshold widens critProbability', () => {
+    expect(critProbability(6, 0, undefined, 4)).toBeCloseTo(3 / 6, 10)
+    expect(critProbability(4, 0, undefined, 2)).toBeCloseTo(5 / 6, 10)
+  })
+
+  test('re-rolled dice can land criticals at the lower threshold', () => {
+    // Crit on 4+ with re-roll 1s: 3/6 + (1/6)(3/6).
+    expect(critProbability(6, 0, 'ones', 4)).toBeCloseTo(
+      3 / 6 + (1 / 6) * (3 / 6),
+      10
+    )
+    // Full re-roll, wound on 6+ crit on 4+: failures (1/2) retry the crit (1/2).
+    expect(critProbability(6, 0, 'full', 4)).toBeCloseTo(
+      3 / 6 + (1 / 2) * (3 / 6),
+      10
+    )
+  })
+
+  test('the threshold clamps to 2..6', () => {
+    // 1+ behaves as 2+ (an unmodified 1 always fails)...
+    expect(critProbability(4, 0, undefined, 1)).toBeCloseTo(5 / 6, 10)
+    // ...and 7+ behaves as 6 (an unmodified 6 is always critical).
+    expect(critProbability(4, 0, undefined, 7)).toBeCloseTo(1 / 6, 10)
+  })
+
+  test('default critOn leaves existing probabilities untouched', () => {
+    expect(rollProbability(3, 0, undefined, 6)).toBeCloseTo(
+      rollProbability(3),
+      10
+    )
+    expect(critProbability(3, 0, 'full', 6)).toBeCloseTo(
+      critProbability(3, 0, 'full'),
+      10
+    )
+  })
+})
+
 describe('atLeastOnD6', () => {
   test('plain d6 tail probabilities', () => {
     expect(atLeastOnD6(4)).toBeCloseTo(1 / 2, 10)

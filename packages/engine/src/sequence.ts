@@ -37,7 +37,7 @@ import type {
  * Damage is allocated model by model: each unsaved wound's damage is capped at the
  * current model's remaining wounds (excess is lost), and a destroyed unit absorbs
  * nothing further. Implemented keywords: Sustained Hits, Lethal Hits, Devastating
- * Wounds, Blast, Rapid Fire, Melta.
+ * Wounds, Blast, Rapid Fire, Melta, Anti.
  */
 export function simulate(
   weapon: Weapon,
@@ -48,11 +48,14 @@ export function simulate(
     weapon.skill === 'torrent'
       ? 1
       : hitProbability(weapon.skill, mods.hit ?? 0, mods.rerollHit)
+  // Anti lowers the Critical Wound threshold when the target keyword matches.
+  const critWoundOn = mods.antiActive ? (weapon.keywords?.anti ?? 6) : 6
   const pWound = woundProbability(
     weapon.strength,
     target.toughness,
     mods.wound ?? 0,
-    mods.rerollWound
+    mods.rerollWound,
+    critWoundOn
   )
   const pFail = saveFailProbability({
     save: target.save,
@@ -70,7 +73,8 @@ export function simulate(
   const pCritWound = critProbability(
     woundThreshold(weapon.strength, target.toughness),
     mods.wound ?? 0,
-    mods.rerollWound
+    mods.rerollWound,
+    critWoundOn
   )
 
   // Unsaved wounds carried by one attack.

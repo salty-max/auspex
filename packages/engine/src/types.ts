@@ -16,6 +16,12 @@ export interface WeaponKeywords {
   rapidFire?: number
   /** Melta X: +`x` damage when the target is within half range. */
   melta?: number
+  /**
+   * Anti X+: an unmodified Wound roll of `x`+ scores a Critical Wound against
+   * matching targets. Matching the target's keyword is the caller's job — set
+   * `Modifiers.antiActive` when it applies.
+   */
+  anti?: number
 }
 
 /** A weapon profile being resolved against a target. */
@@ -64,6 +70,8 @@ export interface Modifiers {
   cover?: boolean
   /** Whether the target is within half the weapon's range (Rapid Fire, Melta). */
   halfRange?: boolean
+  /** Whether the target matches the weapon's Anti keyword. */
+  antiActive?: boolean
 }
 
 /** The result of resolving a weapon against a target. */
