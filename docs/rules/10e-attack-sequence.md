@@ -126,6 +126,33 @@ hits (relevant once Sustained/Lethal Hits land) is not modelled yet. A critical 
 an unmodified 6 **after** any re-roll, so re-rolls raise the critical probability —
 `critProbability` accounts for this.
 
+## Mortal wounds
+
+> Each time mortal wounds are inflicted on a unit, each of those mortal wounds
+> inflicts one point of damage to that unit, and they are always applied one at a
+> time.
+
+> No saving throws can be made against mortal wounds.
+
+> Each mortal wound is allocated to a model in the same manner as allocating an
+> attack. Excess damage from mortal wounds is not lost if the damage can be
+> allocated to another model. Instead, keep allocating damage to another model in
+> the target unit until either all the damage has been allocated or the target
+> unit is destroyed.
+
+The Core Rules add an exception: mortal wounds inflicted by [HAZARDOUS] (or by the
+pre-errata mortal-wound version of Devastating Wounds) lose their excess when the
+model they are allocated to is destroyed, like a normal attack. The current
+Devastating Wounds does not inflict mortal wounds, so for the engine this concerns
+Hazardous only — not implemented yet.
+
+**Engine:** `inflictMortalWounds(mortals, target, onTopOf?)` in `sequence.ts`.
+Each mortal wound is one point of damage walked through the same model-by-model
+allocation as attacks (one at a time, nothing saved, the destroyed unit absorbs
+nothing further), and Feel No Pain applies to each point — see below. Passing a
+prior `SimResult` as `onTopOf` composes exactly: the result's damage distribution
+is the allocation walk's state.
+
 ## Feel No Pain
 
 > Each time a model with this ability suffers damage and so would lose a wound

@@ -24,7 +24,7 @@ export {
   woundProbability,
   woundThreshold,
 } from './rules'
-export { simulate } from './sequence'
+export { inflictMortalWounds, simulate } from './sequence'
 export type {
   Modifiers,
   SimResult,
