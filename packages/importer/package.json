@@ -1,0 +1,33 @@
+{
+  "name": "@auspex/importer",
+  "version": "0.0.0",
+  "description": "BSData (BattleScribe) catalogue ingestion into the auspex schema",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --sourcemap --target=node --format=esm --packages external && tsc --emitDeclarationOnly -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "lint": "eslint . --max-warnings 0",
+    "test": "bun test",
+    "smoke": "bun run scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@auspex/engine": "workspace:*",
+    "@auspex/schema": "workspace:*",
+    "fast-xml-parser": "^5.4.1"
+  },
+  "devDependencies": {
+    "bun-types": "^1.3.13",
+    "typescript": "^6.0.3"
+  }
+}

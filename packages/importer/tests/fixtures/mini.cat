@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<catalogue xmlns="http://www.battlescribe.net/schema/catalogueSchema" id="test-cat" name="Imperium - Test Chapter" battleScribeVersion="2.03" type="catalogue">
+  <sharedSelectionEntries>
+    <selectionEntry type="unit" import="true" name="Test Squad" hidden="false" id="unit-1">
+      <profiles>
+        <profile id="p-unit" name="Test Squad" hidden="false" typeId="t-unit" typeName="Unit">
+          <characteristics>
+            <characteristic name="M" typeId="c-m">6&quot;</characteristic>
+            <characteristic name="T" typeId="c-t">4</characteristic>
+            <characteristic name="SV" typeId="c-sv">3+</characteristic>
+            <characteristic name="W" typeId="c-w">2</characteristic>
+            <characteristic name="LD" typeId="c-ld">6+</characteristic>
+            <characteristic name="OC" typeId="c-oc">2</characteristic>
+          </characteristics>
+        </profile>
+        <profile id="p-inv" name="Invulnerable Save" hidden="false" typeId="t-ab" typeName="Abilities">
+          <characteristics>
+            <characteristic name="Description" typeId="c-desc">This model has a 5+ invulnerable save.</characteristic>
+          </characteristics>
+        </profile>
+        <profile id="p-ab" name="Test Doctrine" hidden="false" typeId="t-ab" typeName="Abilities">
+          <characteristics>
+            <characteristic name="Description" typeId="c-desc">Re-roll something once.</characteristic>
+          </characteristics>
+        </profile>
+      </profiles>
+      <selectionEntries>
+        <selectionEntry type="model" import="true" name="Test Marine" hidden="false" id="model-1">
+          <constraints>
+            <constraint type="min" value="4" field="selections" scope="parent" id="con-1"/>
+            <constraint type="max" value="9" field="selections" scope="parent" id="con-2"/>
+          </constraints>
+          <profiles>
+            <profile id="p-melee" name="Chain blade" hidden="false" typeId="t-melee" typeName="Melee Weapons">
+              <characteristics>
+                <characteristic name="Range" typeId="c-range">Melee</characteristic>
+                <characteristic name="A" typeId="c-a">3</characteristic>
+                <characteristic name="WS" typeId="c-ws">3+</characteristic>
+                <characteristic name="S" typeId="c-s">4</characteristic>
+                <characteristic name="AP" typeId="c-ap">-1</characteristic>
+                <characteristic name="D" typeId="c-d">1</characteristic>
+                <characteristic name="Keywords" typeId="c-kw">-</characteristic>
+              </characteristics>
+            </profile>
+            <profile id="p-broken" name="Broken gun" hidden="false" typeId="t-ranged" typeName="Ranged Weapons">
+              <characteristics>
+                <characteristic name="Range" typeId="c-range">12&quot;</characteristic>
+                <characteristic name="A" typeId="c-a">1</characteristic>
+                <characteristic name="BS" typeId="c-bs">3</characteristic>
+                <characteristic name="S" typeId="c-s">4</characteristic>
+                <characteristic name="AP" typeId="c-ap">0</characteristic>
+                <characteristic name="D" typeId="c-d">1</characteristic>
+                <characteristic name="Keywords" typeId="c-kw">-</characteristic>
+              </characteristics>
+            </profile>
+          </profiles>
+          <entryLinks>
+            <entryLink import="true" name="Test Bolt Rifle" hidden="false" id="link-1" type="selectionEntry" targetId="shared-gun"/>
+          </entryLinks>
+        </selectionEntry>
+        <selectionEntry type="model" import="true" name="Test Sergeant" hidden="false" id="model-2">
+          <constraints>
+            <constraint type="min" value="1" field="selections" scope="parent" id="con-3"/>
+            <constraint type="max" value="1" field="selections" scope="parent" id="con-4"/>
+          </constraints>
+        </selectionEntry>
+      </selectionEntries>
+      <infoLinks>
+        <infoLink name="Linked Rule" hidden="false" type="profile" id="il-1" targetId="shared-ability"/>
+      </infoLinks>
+      <categoryLinks>
+        <categoryLink targetId="cat-1" id="cl-1" primary="false" name="Faction: Adeptus Astartes"/>
+        <categoryLink targetId="cat-2" id="cl-2" primary="false" name="Infantry"/>
+      </categoryLinks>
+      <costs>
+        <cost name="pts" typeId="c-pts" value="80"/>
+        <cost name="pl" typeId="c-pl" value="0"/>
+      </costs>
+    </selectionEntry>
+    <selectionEntry type="upgrade" import="true" name="Test Bolt Rifle" hidden="false" id="shared-gun">
+      <profiles>
+        <profile id="p-gun" name="Test Bolt Rifle" hidden="false" typeId="t-ranged" typeName="Ranged Weapons">
+          <characteristics>
+            <characteristic name="Range" typeId="c-range">24&quot;</characteristic>
+            <characteristic name="A" typeId="c-a">D6</characteristic>
+            <characteristic name="BS" typeId="c-bs">N/A</characteristic>
+            <characteristic name="S" typeId="c-s">8</characteristic>
+            <characteristic name="AP" typeId="c-ap">-2</characteristic>
+            <characteristic name="D" typeId="c-d">D6+1</characteristic>
+            <characteristic name="Keywords" typeId="c-kw">Torrent, Rapid Fire 1, Anti-Vehicle 4+, Sustained Hits D3, Twin-linked</characteristic>
+          </characteristics>
+        </profile>
+      </profiles>
+    </selectionEntry>
+  </sharedSelectionEntries>
+  <sharedProfiles>
+    <profile id="shared-ability" name="Linked Rule" hidden="false" typeId="t-ab" typeName="Abilities">
+      <characteristics>
+        <characteristic name="Description" typeId="c-desc">Shared via infoLink.</characteristic>
+      </characteristics>
+    </profile>
+  </sharedProfiles>
+</catalogue>
