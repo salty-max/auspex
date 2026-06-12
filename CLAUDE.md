@@ -85,6 +85,9 @@ approximations.
 - No AI attribution: no `Co-Authored-By: Claude`, no "Generated with" footers, in
   commits or PR descriptions.
 - Use `Closes #N` / `Fixes #N` in PR descriptions so issues auto-close.
-- Self-review before declaring done, as a loop until a full pass is clean:
-  build/test/typecheck green → read every changed file line by line → check
-  conventions in this file → hygiene (no dead code, no leftover debug output).
+- **Every PR gets a self-review before it is opened**, run as a loop: all four
+  gates green → read every changed file line by line → check the conventions in
+  this file → hygiene (no dead code, no leftover debug output). Fix everything
+  found, then re-run the **whole** pass from the top. Only stop when a complete
+  pass returns LGTM — zero findings. Green CI is the entry ticket to the review,
+  never the review itself.

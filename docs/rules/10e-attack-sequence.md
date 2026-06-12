@@ -95,6 +95,15 @@ nothing further. `SimResult.damageDistribution` is therefore the damage actually
 inflicted, bounded by `wounds × models`, and `modelsSlainDistribution` is its
 marginal over whole models.
 
+## Dice expressions and modifiers
+
+The Core Rules define **no minimum result for a modified dice roll** — there is no
+clause clamping `D3-2`-style rolls at 0 or 1 (verified against the rules text; the
+only caps are the ±1 modifier limits on hit/wound rolls quoted above). The engine's
+convention: modified rolls clamp at 0, and 0 damage simply inflicts nothing.
+Abilities that state their own floor ("to a minimum of 1") are the caller's
+responsibility.
+
 ## Re-rolls
 
 > Some rules allow you to re-roll a dice roll, which means you get to roll some or

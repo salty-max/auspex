@@ -32,4 +32,5 @@ splitting services; a service can always be extracted later if a real scaling ne
 bun install
 bun test          # run every package's tests
 bun run typecheck
+bun run lint
 ```
