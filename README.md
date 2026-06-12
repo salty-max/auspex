@@ -12,7 +12,7 @@ text **list DSL** — built around a single normalized data model.
 ```
 packages/
   engine/   Exact probability engine for combat resolution (TS, zero-dependency, isomorphic)
-  schema/   Normalized data model — datasheets, weapons, keywords         (planned)
+  schema/   Normalized data model — datasheets, weapons, points (zod validators + engine converters)
   dsl/      Text list language + parser                                    (planned)
   importer/ BSData -> schema ingestion                                     (planned)
 apps/
