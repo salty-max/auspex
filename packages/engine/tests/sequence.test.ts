@@ -491,6 +491,68 @@ describe('simulate', () => {
     expect(simulate(weapon, fourMarines).mean).toBeCloseTo(plain.mean, 10)
   })
 
+  test('Rapid Fire: +X attacks within half range, nothing beyond it', () => {
+    const weapon: Weapon = {
+      ...bolter,
+      attacks: 2,
+      keywords: { rapidFire: 2 },
+    }
+    const close = simulate(weapon, marine, { halfRange: true })
+    const far = simulate(weapon, marine)
+    expect(close.mean).toBeCloseTo(4 * (2 / 3) * (1 / 2) * (1 / 3), 10)
+    expect(far.mean).toBeCloseTo(2 * (2 / 3) * (1 / 2) * (1 / 3), 10)
+  })
+
+  test('Rapid Fire composes with Blast on the attack count', () => {
+    const weapon: Weapon = {
+      ...bolter,
+      attacks: 1,
+      keywords: { rapidFire: 1, blast: true },
+    }
+    const horde: Target = { toughness: 4, save: 6, wounds: 1, models: 10 }
+    // 1 base + 1 rapid fire + 2 blast = 4 attacks; AP 0 vs a 6+ save fails 5/6.
+    const result = simulate(weapon, horde, { halfRange: true })
+    expect(result.mean).toBeCloseTo(4 * (2 / 3) * (1 / 2) * (5 / 6), 10)
+  })
+
+  test('Melta: +X damage within half range, applied before the wound cap', () => {
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 'D6',
+      keywords: { melta: 2 },
+    }
+    const tank: Target = { toughness: 4, save: 6, wounds: 10, models: 1 }
+    // Damage becomes D6+2 (mean 5.5), max 8 stays under the 10-wound cap.
+    const close = simulate(weapon, tank, { halfRange: true })
+    const far = simulate(weapon, tank)
+    expect(close.mean).toBeCloseTo((5 / 6) * 5.5, 10)
+    expect(far.mean).toBeCloseTo((5 / 6) * 3.5, 10)
+  })
+
+  test('Melta raises the damage characteristic before Feel No Pain', () => {
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 'D6',
+      keywords: { melta: 2 },
+    }
+    const tank: Target = {
+      toughness: 4,
+      save: 6,
+      feelNoPain: 5,
+      wounds: 10,
+      models: 1,
+    }
+    // Each of the D6+2 points is independently ignored on a 5+: mean scales by 2/3.
+    const result = simulate(weapon, tank, { halfRange: true })
+    expect(result.mean).toBeCloseTo((5 / 6) * 5.5 * (2 / 3), 10)
+  })
+
   test('percentile reads quantiles off the damage distribution', () => {
     const result = simulate(bolter, marine)
     expect(result.percentile(0)).toBe(0)

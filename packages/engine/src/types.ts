@@ -12,6 +12,10 @@ export interface WeaponKeywords {
   devastatingWounds?: boolean
   /** Blast: +1 attack for every five models in the target unit (rounding down). */
   blast?: boolean
+  /** Rapid Fire X: +`x` attacks when the target is within half range. */
+  rapidFire?: number
+  /** Melta X: +`x` damage when the target is within half range. */
+  melta?: number
 }
 
 /** A weapon profile being resolved against a target. */
@@ -58,6 +62,8 @@ export interface Modifiers {
   rerollWound?: Reroll
   /** Whether the target has the Benefit of Cover (ranged attacks only). */
   cover?: boolean
+  /** Whether the target is within half the weapon's range (Rapid Fire, Melta). */
+  halfRange?: boolean
 }
 
 /** The result of resolving a weapon against a target. */
