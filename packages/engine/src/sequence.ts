@@ -1,4 +1,4 @@
-import { diceDistribution } from './dice'
+import { diceDistribution, type DiceExpr } from './dice'
 import {
   binomial,
   convolve,
@@ -104,6 +104,39 @@ export function simulate(
 
   // Allocate the wounds through the unit, model by model, losing excess damage.
   const damageDistribution = inflictDamage(unsavedWounds, woundDamage, target)
+  return buildResult(damageDistribution, target)
+}
+
+/**
+ * Resolve mortal wounds against a target: each mortal wound inflicts one point of
+ * damage, applied one at a time with no saving throw of any kind, allocating from
+ * model to model until the unit is destroyed. Feel No Pain applies to each point.
+ *
+ * Pass `onTopOf` to inflict the mortal wounds after an existing simulation — the
+ * result's damage distribution is exactly the allocation walk's state, so the
+ * composition stays exact.
+ */
+export function inflictMortalWounds(
+  mortals: DiceExpr,
+  target: Target,
+  onTopOf?: SimResult
+): SimResult {
+  // One point of damage per mortal wound, each independently ignored by FNP.
+  const perMortal = applyFeelNoPain(point(1), target.feelNoPain)
+  const damageDistribution = inflictDamage(
+    diceDistribution(mortals),
+    perMortal,
+    target,
+    onTopOf?.damageDistribution
+  )
+  return buildResult(damageDistribution, target)
+}
+
+/** Assemble the public result from the inflicted-damage distribution. */
+function buildResult(
+  damageDistribution: Distribution,
+  target: Target
+): SimResult {
   const modelsSlainDistribution = modelsSlain(damageDistribution, target)
 
   return {
@@ -208,11 +241,12 @@ function compoundSum(count: Distribution, term: Distribution): Distribution {
 function inflictDamage(
   unsavedWounds: Distribution,
   damage: Distribution,
-  target: Target
+  target: Target,
+  initialState: Distribution = point(0)
 ): Distribution {
   const cap = target.models * target.wounds
   const out = new Array<number>(cap + 1).fill(0)
-  let state: Distribution = point(0)
+  let state = initialState
   for (let n = 0; n < unsavedWounds.length; n++) {
     const weight = unsavedWounds[n]
     if (weight) {

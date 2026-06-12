@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { simulate } from '../src/sequence'
+import { inflictMortalWounds, simulate } from '../src/sequence'
 import type { Target, Weapon } from '../src/types'
 
 /** A Space Marine Equivalent profile: T4, 3+ save, 2 wounds. */
@@ -594,6 +594,60 @@ describe('simulate', () => {
       rerollWound: 'ones',
     })
     expect(result.mean).toBeCloseTo(10 * (2 / 3) * (7 / 12), 10)
+  })
+
+  test('mortal wounds: one point each, no save, allocated across models', () => {
+    const squad: Target = {
+      toughness: 4,
+      save: 2,
+      invuln: 4,
+      wounds: 1,
+      models: 10,
+    }
+    // Saves are irrelevant: D3 mortals inflict exactly D3 damage and slay D3 models.
+    const result = inflictMortalWounds('D3', squad)
+    for (let k = 1; k <= 3; k++) {
+      expect(result.damageDistribution[k]).toBeCloseTo(1 / 3, 10)
+      expect(result.modelsSlainDistribution[k]).toBeCloseTo(1 / 3, 10)
+    }
+    expect(result.mean).toBeCloseTo(2, 10)
+    expect(result.probAtLeast(3)).toBeCloseTo(1 / 3, 10)
+  })
+
+  test('mortal wounds: Feel No Pain still applies to each point', () => {
+    const squad: Target = {
+      toughness: 4,
+      save: 2,
+      feelNoPain: 5,
+      wounds: 1,
+      models: 10,
+    }
+    // Each of the D3 points is independently ignored on a 5+: mean 2 × 2/3.
+    expect(inflictMortalWounds('D3', squad).mean).toBeCloseTo(2 * (2 / 3), 10)
+  })
+
+  test('mortal wounds compose exactly on top of a simulation result', () => {
+    const weapon: Weapon = {
+      attacks: 2,
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 1,
+    }
+    const squad: Target = { toughness: 4, save: 6, wounds: 1, models: 5 }
+    // 2 wounds at 5/6 each, then 1 guaranteed mortal: means add (no cap pressure).
+    const shooting = simulate(weapon, squad)
+    const total = inflictMortalWounds(1, squad, shooting)
+    expect(total.mean).toBeCloseTo(2 * (5 / 6) + 1, 10)
+    expect(total.meanModelsSlain).toBeCloseTo(2 * (5 / 6) + 1, 10)
+  })
+
+  test('mortal wounds stop at a destroyed unit', () => {
+    const lone: Target = { toughness: 4, save: 2, wounds: 2, models: 1 }
+    const result = inflictMortalWounds(5, lone)
+    // Five guaranteed mortals into 2 wounds: exactly 2 damage, certain wipe.
+    expect(result.damageDistribution).toEqual([0, 0, 1])
+    expect(result.probWipes).toBeCloseTo(1, 10)
   })
 
   test('percentile reads quantiles off the damage distribution', () => {
