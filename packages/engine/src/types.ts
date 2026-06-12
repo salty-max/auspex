@@ -26,6 +26,11 @@ export interface WeaponKeywords {
 
 /** A weapon profile being resolved against a target. */
 export interface Weapon {
+  /**
+   * Whether the weapon is ranged or melee (default `'ranged'`). Melee attacks
+   * never benefit from cover — the engine ignores `Modifiers.cover` for them.
+   */
+  kind?: 'ranged' | 'melee'
   /** Number of attacks (Attacks characteristic). */
   attacks: DiceExpr
   /** Ballistic/Weapon Skill, as the N+ required to hit. `'torrent'` auto-hits. */

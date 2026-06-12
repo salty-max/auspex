@@ -650,6 +650,34 @@ describe('simulate', () => {
     expect(result.probWipes).toBeCloseTo(1, 10)
   })
 
+  test('melee weapons never benefit from cover', () => {
+    const chainsword: Weapon = {
+      kind: 'melee',
+      attacks: 3,
+      skill: 3,
+      strength: 4,
+      ap: 1,
+      damage: 1,
+    }
+    const guardsman: Target = { toughness: 3, save: 5, wounds: 1, models: 10 }
+    const open = simulate(chainsword, guardsman)
+    const covered = simulate(chainsword, guardsman, { cover: true })
+    expect(covered.mean).toBeCloseTo(open.mean, 10)
+    // S4 vs T3 wounds on 3+; a 5+ save at AP -1 fails 5/6.
+    expect(open.mean).toBeCloseTo(3 * (2 / 3) * (4 / 6) * (5 / 6), 10)
+  })
+
+  test('weapons default to ranged and keep benefiting from cover', () => {
+    const guardsman: Target = { toughness: 3, save: 5, wounds: 1, models: 10 }
+    const explicit = simulate({ ...bolter, kind: 'ranged' }, guardsman, {
+      cover: true,
+    })
+    const defaulted = simulate(bolter, guardsman, { cover: true })
+    expect(explicit.mean).toBeCloseTo(defaulted.mean, 10)
+    // Cover improves the 5+ save to 4+: fail 3/6 instead of 4/6.
+    expect(defaulted.mean).toBeCloseTo(10 * (2 / 3) * (4 / 6) * (3 / 6), 10)
+  })
+
   test('percentile reads quantiles off the damage distribution', () => {
     const result = simulate(bolter, marine)
     expect(result.percentile(0)).toBe(0)
