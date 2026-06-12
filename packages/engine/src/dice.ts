@@ -10,9 +10,19 @@ export type DiceExpr = number | string
 
 const DICE_PATTERN = /^(\d*)d(\d+)([+-]\d+)?$/i
 
+/** Far beyond any real profile — a guard against runaway convolution work. */
+const MAX_DICE = 100
+
 /** Resolve a dice expression to the distribution of its outcome. */
 export function diceDistribution(expr: DiceExpr): Distribution {
-  if (typeof expr === 'number') return point(expr)
+  if (typeof expr === 'number') {
+    if (!Number.isInteger(expr) || expr < 0) {
+      throw new Error(
+        `Invalid dice expression: ${expr} (non-negative integer required)`
+      )
+    }
+    return point(expr)
+  }
 
   const trimmed = expr.trim()
   if (/^\d+$/.test(trimmed)) return point(Number.parseInt(trimmed, 10))
@@ -25,6 +35,17 @@ export function diceDistribution(expr: DiceExpr): Distribution {
   const count = match[1] === '' ? 1 : Number.parseInt(match[1], 10)
   const sides = Number.parseInt(match[2], 10)
   const modifier = match[3] ? Number.parseInt(match[3], 10) : 0
+
+  if (sides < 1) {
+    throw new Error(
+      `Invalid dice expression: "${expr}" (a die needs at least 1 side)`
+    )
+  }
+  if (count > MAX_DICE) {
+    throw new Error(
+      `Invalid dice expression: "${expr}" (at most ${MAX_DICE} dice)`
+    )
+  }
 
   let dist = point(0)
   for (let i = 0; i < count; i++) {

@@ -8,6 +8,11 @@ export type Distribution = readonly number[]
 
 /** A distribution with all of its mass on a single value. */
 export function point(value: number): Distribution {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(
+      `Invalid point value: ${value} (non-negative integer required)`
+    )
+  }
   const d = new Array<number>(value + 1).fill(0)
   d[value] = 1
   return d
@@ -15,6 +20,9 @@ export function point(value: number): Distribution {
 
 /** The uniform distribution over the faces of a single `sides`-sided die (1..sides). */
 export function die(sides: number): Distribution {
+  if (!Number.isInteger(sides) || sides < 1) {
+    throw new Error(`Invalid die sides: ${sides} (positive integer required)`)
+  }
   const d = new Array<number>(sides + 1).fill(0)
   for (let face = 1; face <= sides; face++) {
     d[face] = 1 / sides
@@ -31,6 +39,7 @@ export function convolve(a: Distribution, b: Distribution): Distribution {
   for (let i = 0; i < a.length; i++) {
     if (a[i] === 0) continue
     for (let j = 0; j < b.length; j++) {
+      if (b[j] === 0) continue
       out[i + j] += a[i] * b[j]
     }
   }
@@ -85,10 +94,10 @@ export function variance(d: Distribution): number {
   return v
 }
 
-/** The probability that the value is at least `x`. */
+/** The probability that the value is at least `x` (fractional `x` rounds up). */
 export function probAtLeast(d: Distribution, x: number): number {
   let p = 0
-  for (let k = Math.max(0, x); k < d.length; k++) {
+  for (let k = Math.max(0, Math.ceil(x)); k < d.length; k++) {
     p += d[k]
   }
   return p
