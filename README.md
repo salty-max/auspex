@@ -14,7 +14,7 @@ packages/
   engine/   Exact probability engine for combat resolution (TS, zero-dependency, isomorphic)
   schema/   Normalized data model — datasheets, weapons, points (zod validators + engine converters)
   dsl/      Text list language + parser                                    (planned)
-  importer/ BSData -> schema ingestion                                     (planned)
+  importer/ BSData (BattleScribe) catalogue ingestion into the schema
 apps/
   api/      Backend: serves data, persists lists                          (planned)
   web/      Army builder + combat simulator UI                            (planned)
