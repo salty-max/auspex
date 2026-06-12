@@ -56,8 +56,11 @@ approximations.
 
 ## Engine conventions (`packages/engine`)
 
-- **Zero runtime dependencies**, isomorphic, browser-first ESM. Keep
-  `sideEffects: false` true in practice (no module-level state).
+- **Zero runtime dependencies**, isomorphic, browser-first ESM. No module-level
+  state. Do NOT add `sideEffects: false` to package.json: bun 1.3's bundler
+  tree-shakes a pure re-export entry (like `index.ts`) down to an empty export
+  stub under that flag — the build exits 0 and CI stays green while `dist` is
+  hollow. Caught 2026-06-13 when `@auspex/schema` became the first consumer.
 - Everything is **exact probability**, never Monte Carlo: results are deterministic
   distributions (`Distribution` = probability mass over non-negative integers,
   index = value). New mechanics compose as distribution transformations.
