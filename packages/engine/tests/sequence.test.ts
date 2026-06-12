@@ -462,6 +462,35 @@ describe('simulate', () => {
     expect(result.meanModelsSlain).toBeCloseTo(slainMean, 10)
   })
 
+  test('Blast: +1 attack per five models in the target unit', () => {
+    // 5 attacks so the +1 stays well under the unit's 10-wound cap: exact closed form.
+    const weapon: Weapon = { ...bolter, attacks: 5, keywords: { blast: true } }
+    // 5 Marines → +1 attack: 6 instead of 5.
+    const result = simulate(weapon, marine)
+    expect(result.mean).toBeCloseTo(6 * (2 / 3) * (1 / 2) * (1 / 3), 10)
+  })
+
+  test('Blast rounds down and scales with unit size', () => {
+    const weapon: Weapon = {
+      attacks: 'D6',
+      skill: 'torrent',
+      strength: 8,
+      ap: 2,
+      damage: 1,
+      keywords: { blast: true },
+    }
+    const horde: Target = { toughness: 4, save: 6, wounds: 1, models: 10 }
+    // 10 models → D6+2 attacks, mean 5.5, each killing with 5/6.
+    expect(simulate(weapon, horde).mean).toBeCloseTo(5.5 * (5 / 6), 10)
+  })
+
+  test('Blast grants nothing below five models', () => {
+    const weapon: Weapon = { ...bolter, keywords: { blast: true } }
+    const fourMarines: Target = { ...marine, models: 4 }
+    const plain = simulate(bolter, fourMarines)
+    expect(simulate(weapon, fourMarines).mean).toBeCloseTo(plain.mean, 10)
+  })
+
   test('percentile reads quantiles off the damage distribution', () => {
     const result = simulate(bolter, marine)
     expect(result.percentile(0)).toBe(0)
