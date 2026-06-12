@@ -30,6 +30,27 @@ by `floor(target.models / 5)` before the hit stage. The Engagement Range targeti
 restriction is a legality question, not a math one — enforcing it is the caller's
 responsibility.
 
+## Rapid Fire X — implemented
+
+> Weapons with [RAPID FIRE X] in their profile are known as Rapid Fire weapons.
+> Each time such a weapon targets a unit within half that weapon's range, the
+> Attacks characteristic of that weapon is increased by the amount denoted by 'x'.
+
+**Engine:** `WeaponKeywords.rapidFire` in `types.ts`. The engine has no notion of
+range — `Modifiers.halfRange` is caller-supplied (mirroring `cover`) and shifts the
+attack distribution up by X. Composes with Blast's bonus.
+
+## Melta X — implemented
+
+> Weapons with [MELTA X] in their profile are known as Melta weapons. Each time an
+> attack made with such a weapon targets a unit within half that weapon's range,
+> that attack's Damage characteristic is increased by the amount denoted by 'x'.
+
+**Engine:** `WeaponKeywords.melta` in `types.ts`, driven by the same
+`Modifiers.halfRange` flag. The damage distribution shifts up by X **before** Feel
+No Pain — the characteristic increases, then each point is saved against
+individually.
+
 ## Sustained Hits X — implemented
 
 > Each time an attack is made with such a weapon, if a Critical Hit is rolled, that

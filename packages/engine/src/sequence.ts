@@ -37,7 +37,7 @@ import type {
  * Damage is allocated model by model: each unsaved wound's damage is capped at the
  * current model's remaining wounds (excess is lost), and a destroyed unit absorbs
  * nothing further. Implemented keywords: Sustained Hits, Lethal Hits, Devastating
- * Wounds, Blast.
+ * Wounds, Blast, Rapid Fire, Melta.
  */
 export function simulate(
   weapon: Weapon,
@@ -80,14 +80,21 @@ export function simulate(
   )
 
   // Distribution over the number of unsaved wounds, accounting for a variable
-  // attack count. Blast grants +1 attack per five models in the target unit.
+  // attack count. Blast grants +1 attack per five models in the target unit;
+  // Rapid Fire X grants +X attacks within half range.
   const blastBonus = weapon.keywords?.blast ? Math.floor(target.models / 5) : 0
-  const attacks = shift(diceDistribution(weapon.attacks), blastBonus)
+  const rapidFireBonus = mods.halfRange ? (weapon.keywords?.rapidFire ?? 0) : 0
+  const attacks = shift(
+    diceDistribution(weapon.attacks),
+    blastBonus + rapidFireBonus
+  )
   const unsavedWounds = compoundSum(attacks, perAttack)
 
-  // Damage carried by a single unsaved wound, after Feel No Pain.
+  // Damage carried by a single unsaved wound: Melta X raises the Damage
+  // characteristic within half range, then Feel No Pain saves each point.
+  const meltaBonus = mods.halfRange ? (weapon.keywords?.melta ?? 0) : 0
   const woundDamage = applyFeelNoPain(
-    diceDistribution(weapon.damage),
+    shift(diceDistribution(weapon.damage), meltaBonus),
     target.feelNoPain
   )
 
