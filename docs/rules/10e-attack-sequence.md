@@ -74,7 +74,8 @@ defender-chosen allocation order are not modelled.
 - > Models with a Save characteristic of 3+ or better cannot have the Benefit of Cover
   > against attacks with an Armour Penetration characteristic of 0.
 - Cover never improves invulnerable saves, and multiple instances are not cumulative.
-- Cover applies to **ranged attacks only** — callers must not pass `cover` for melee.
+- Cover applies to **ranged attacks only** — `Weapon.kind` carries the distinction
+  and the engine ignores `Modifiers.cover` for melee weapons.
 
 **Engine:** `saveFailProbability` in `rules.ts`. AP degrades the armour save, cover
 improves it by 1 (with the 3+/AP 0 exception), the invulnerable save is compared

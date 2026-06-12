@@ -61,7 +61,8 @@ export function simulate(
     save: target.save,
     invuln: target.invuln,
     ap: weapon.ap,
-    cover: mods.cover,
+    // The Benefit of Cover applies to ranged attacks only.
+    cover: weapon.kind === 'melee' ? false : mods.cover,
   })
 
   // A torrent weapon makes no hit roll, so it can never score a Critical Hit.
