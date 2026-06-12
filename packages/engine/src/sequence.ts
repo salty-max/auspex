@@ -4,6 +4,7 @@ import {
   convolve,
   type Distribution,
   mean,
+  normalize,
   percentile,
   point,
   probAtLeast,
@@ -207,7 +208,8 @@ function inflictDamage(
     }
     state = applyOneWound(state, damage, target)
   }
-  return trim(out)
+  // The walk is the end of a long chain of float products; rescale the drift away.
+  return normalize(trim(out))
 }
 
 /** Advance the damage-state distribution by one unsaved wound. */
