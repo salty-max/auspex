@@ -15,6 +15,7 @@ packages/
   schema/   Normalized data model — datasheets, weapons, points (zod validators + engine converters)
   dsl/      Text list language + parser                                    (planned)
   importer/ BSData (BattleScribe) catalogue ingestion into the schema
+  data/     Baked faction artifacts: SQLite + provenance + hand-edited YAML overrides
 apps/
   api/      Backend: serves data, persists lists                          (planned)
   web/      Army builder + combat simulator UI                            (planned)
