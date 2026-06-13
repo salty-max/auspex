@@ -2,6 +2,7 @@ import { bakeCatalogue, openDataDb } from '@auspex/data'
 import { beforeAll, describe, expect, test } from 'bun:test'
 
 import { createApp } from '../src/app'
+import { inMemoryListRepository } from '../src/lists/repository'
 
 const xml = await Bun.file(
   new URL('fixtures/mini.cat', import.meta.url).pathname
@@ -14,7 +15,7 @@ beforeAll(() => {
   // The fixture's Test Squad: faction "Test Chapter", keywords ADEPTUS ASTARTES
   // + INFANTRY, 80 pts.
   bakeCatalogue(db, { xml })
-  app = createApp({ db })
+  app = createApp({ db, lists: inMemoryListRepository() })
 })
 
 async function get(path: string): Promise<{ status: number; body: unknown }> {
