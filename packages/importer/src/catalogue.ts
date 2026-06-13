@@ -13,7 +13,38 @@ const ARRAY_NODES = new Set([
   'categoryLink',
   'cost',
   'constraint',
+  'catalogueLink',
 ])
+
+/** Identity and dependencies of a catalogue, read without a full import. */
+export interface CatalogueMeta {
+  /** The catalogue's root id, the target of other catalogues' `catalogueLink`s. */
+  id: string
+  /** The catalogue's display name. */
+  name: string
+  /** The faction name, stripped of the `Imperium - …` style prefix. */
+  faction: string
+  /** Whether the catalogue is a shared library rather than a faction roster. */
+  isLibrary: boolean
+  /** The root ids this catalogue depends on, from its `catalogueLink`s. */
+  dependencies: string[]
+}
+
+/** Read a catalogue's identity and `catalogueLink` dependencies from its XML. */
+export function catalogueMeta(xml: string): CatalogueMeta {
+  const catalogue = parseCatalogueXml(xml)
+  const dependencies = children(catalogue, 'catalogueLinks', 'catalogueLink')
+    .map((link) => attr(link, 'targetId'))
+    .filter((id): id is string => id !== undefined)
+  const name = attr(catalogue, 'name') ?? 'Unknown'
+  return {
+    id: attr(catalogue, 'id') ?? '',
+    name,
+    faction: name.replace(/^.*- /, ''),
+    isLibrary: attr(catalogue, 'library') === 'true',
+    dependencies,
+  }
+}
 
 /** Parse a BSData catalogue file into a navigable tree. */
 export function parseCatalogueXml(xml: string): XmlNode {

@@ -9,11 +9,17 @@ import {
 } from '../src/values'
 
 describe('characteristic parsers', () => {
-  test('rolls: "3+" parses, bare numbers and N/A do not', () => {
+  test('rolls: "3+" parses; a bare integer is the same value (BSData typo)', () => {
     expect(parseRoll('3+')).toBe(3)
     expect(parseRoll('2+ ')).toBe(2)
-    expect(parseRoll('3')).toBeUndefined()
+    expect(parseRoll('3')).toBe(3)
+    expect(parseRoll('2')).toBe(2)
+  })
+
+  test('rolls: "7+" (no armour save) parses; non-numeric does not', () => {
+    expect(parseRoll('7+')).toBe(7)
     expect(parseRoll('N/A')).toBeUndefined()
+    expect(parseRoll('-')).toBeUndefined()
   })
 
   test('inches: 30" parses, Melee does not', () => {
@@ -21,11 +27,11 @@ describe('characteristic parsers', () => {
     expect(parseInches('Melee')).toBeUndefined()
   })
 
-  test('AP: BSData prints negatives, the schema stores magnitudes', () => {
+  test('AP: BSData prints negatives, "-" and "0" mean no AP', () => {
     expect(parseAp('-2')).toBe(2)
     expect(parseAp('0')).toBe(0)
+    expect(parseAp('-')).toBe(0)
     expect(parseAp('1')).toBeUndefined()
-    expect(parseAp('-')).toBeUndefined()
   })
 
   test('dice expressions pass through, garbage does not', () => {
