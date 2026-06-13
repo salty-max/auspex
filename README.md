@@ -18,7 +18,7 @@ packages/
   data/     Baked faction artifacts: SQLite + provenance + hand-edited YAML overrides
   resolver/ Binds a parsed list to real datasheets — validates, costs, diagnoses
 apps/
-  api/      Backend: serves data, persists lists                          (planned)
+  api/      Hono API serving the baked data; Postgres lists + auth         (in progress)
   web/      Army builder + combat simulator UI                            (planned)
 ```
 
