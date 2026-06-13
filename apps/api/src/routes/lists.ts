@@ -2,6 +2,11 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import type { Database } from 'bun:sqlite'
 
 import {
+  type AuthProvider,
+  type AuthVariables,
+  requireUser,
+} from '../auth/provider'
+import {
   type ArmyListDto,
   createListBodySchema,
   errorSchema,
@@ -19,6 +24,7 @@ export interface ListRoutesDeps {
   lists: ListRepository
   /** The baked data artifact, for resolving a list on read. */
   data: Database
+  auth: AuthProvider
 }
 
 const jsonError = (description: string) => ({
@@ -35,6 +41,7 @@ const json = <T extends z.ZodTypeAny>(schema: T, description: string) => ({
 function serialize(record: ArmyListRecord): ArmyListDto {
   return {
     id: record.id,
+    owner: record.owner,
     name: record.name,
     faction: record.faction,
     body: record.body,
@@ -42,6 +49,8 @@ function serialize(record: ArmyListRecord): ArmyListDto {
     updatedAt: record.updatedAt.toISOString(),
   }
 }
+
+const unauthorized = jsonError('Authentication required.')
 
 const createListRoute = createRoute({
   method: 'post',
@@ -53,15 +62,17 @@ const createListRoute = createRoute({
   responses: {
     201: json(listResponseSchema, 'The created list.'),
     400: jsonError('Malformed body.'),
+    401: unauthorized,
   },
 })
 
 const listListsRoute = createRoute({
   method: 'get',
   path: '/lists',
-  summary: 'List every army list',
+  summary: 'List the signed-in user’s army lists',
   responses: {
     200: json(listsResponseSchema, 'The lists.'),
+    401: unauthorized,
   },
 })
 
@@ -72,6 +83,7 @@ const getListRoute = createRoute({
   request: { params: z.object({ id: z.string() }) },
   responses: {
     200: json(getListResponseSchema, 'The list and its resolved, costed army.'),
+    401: unauthorized,
     404: jsonError('No such list.'),
   },
 })
@@ -87,6 +99,7 @@ const updateListRoute = createRoute({
   responses: {
     200: json(listResponseSchema, 'The updated list.'),
     400: jsonError('Malformed body.'),
+    401: unauthorized,
     404: jsonError('No such list.'),
   },
 })
@@ -98,30 +111,34 @@ const deleteListRoute = createRoute({
   request: { params: z.object({ id: z.string() }) },
   responses: {
     204: { description: 'Deleted.' },
+    401: unauthorized,
     404: jsonError('No such list.'),
   },
 })
 
-/** The army-list CRUD routes, resolving the DSL on read. */
+/** The army-list CRUD routes — authenticated and scoped to the owning user. */
 export function listRoutes(deps: ListRoutesDeps) {
-  return new OpenAPIHono({
+  const app = new OpenAPIHono<{ Variables: AuthVariables }>({
     defaultHook: (result) => {
       if (!result.success) {
         throw badRequest('Invalid request body.')
       }
     },
   })
+  app.use('*', requireUser(deps.auth))
+
+  return app
     .openapi(createListRoute, async (c) => {
-      const list = await deps.lists.create(c.req.valid('json'))
+      const list = await deps.lists.create(c.get('userId'), c.req.valid('json'))
       return c.json({ list: serialize(list) }, 201)
     })
     .openapi(listListsRoute, async (c) => {
-      const records = await deps.lists.list()
+      const records = await deps.lists.list(c.get('userId'))
       return c.json({ lists: records.map(serialize) }, 200)
     })
     .openapi(getListRoute, async (c) => {
       const { id } = c.req.valid('param')
-      const record = await deps.lists.get(id)
+      const record = await deps.lists.get(c.get('userId'), id)
       if (!record) {
         throw notFound(`No list "${id}".`)
       }
@@ -135,7 +152,11 @@ export function listRoutes(deps: ListRoutesDeps) {
     })
     .openapi(updateListRoute, async (c) => {
       const { id } = c.req.valid('param')
-      const record = await deps.lists.update(id, c.req.valid('json'))
+      const record = await deps.lists.update(
+        c.get('userId'),
+        id,
+        c.req.valid('json')
+      )
       if (!record) {
         throw notFound(`No list "${id}".`)
       }
@@ -143,7 +164,7 @@ export function listRoutes(deps: ListRoutesDeps) {
     })
     .openapi(deleteListRoute, async (c) => {
       const { id } = c.req.valid('param')
-      const removed = await deps.lists.remove(id)
+      const removed = await deps.lists.remove(c.get('userId'), id)
       if (!removed) {
         throw notFound(`No list "${id}".`)
       }

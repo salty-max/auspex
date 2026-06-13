@@ -2,6 +2,7 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { Scalar } from '@scalar/hono-api-reference'
 import type { Database } from 'bun:sqlite'
 
+import type { AuthProvider } from './auth/provider'
 import type { ListRepository } from './lists/repository'
 import { errorHandler } from './middleware/error'
 import { rateLimit } from './middleware/rate-limit'
@@ -14,6 +15,8 @@ export interface AppDeps {
   db: Database
   /** Persistence for user army lists. */
   lists: ListRepository
+  /** Authentication — wraps BetterAuth in production, a fake in tests. */
+  auth: AuthProvider
 }
 
 /**
@@ -27,10 +30,19 @@ export function createApp(deps: AppDeps) {
   const app = new OpenAPIHono()
   app.use('*', rateLimit({ windowMs: 60_000, max: 120 }))
 
+  // BetterAuth owns its own routes (sign-up/in/out/session).
+  if (deps.auth.handler) {
+    const handler = deps.auth.handler
+    app.on(['POST', 'GET'], '/api/auth/*', (c) => handler(c.req.raw))
+  }
+
   const routed = app
     .get('/health', (c) => c.json({ status: 'ok' }))
     .route('/', dataRoutes(deps.db))
-    .route('/', listRoutes({ lists: deps.lists, data: deps.db }))
+    .route(
+      '/',
+      listRoutes({ lists: deps.lists, data: deps.db, auth: deps.auth })
+    )
 
   app.doc('/openapi.json', {
     openapi: '3.1.0',
