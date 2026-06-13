@@ -189,7 +189,7 @@ function buildWeapon(
 
   const attacks = parseDice(c.get('A') ?? '')
   if (attacks === undefined) return fail(`unparseable attacks "${c.get('A')}"`)
-  const strength = parseInt10(c.get('S') ?? '')
+  const strength = parseDice(c.get('S') ?? '')
   if (strength === undefined)
     return fail(`unparseable strength "${c.get('S')}"`)
   const ap = parseAp(c.get('AP') ?? '')

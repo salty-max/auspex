@@ -130,3 +130,48 @@ describe('catalogueMeta', () => {
     expect(meta.dependencies).toEqual([])
   })
 })
+
+describe('importCatalogue — random Strength', () => {
+  const randomStrengthCat = `<?xml version="1.0" encoding="UTF-8"?>
+<catalogue xmlns="http://www.battlescribe.net/schema/catalogueSchema" id="zzap-cat" name="Xenos - Zzap" type="catalogue">
+  <sharedSelectionEntries>
+    <selectionEntry type="unit" import="true" name="Zzap Crew" id="zzap-unit">
+      <profiles>
+        <profile name="Zzap Crew" typeId="t-unit" typeName="Unit">
+          <characteristics>
+            <characteristic name="T">5</characteristic>
+            <characteristic name="SV">5+</characteristic>
+            <characteristic name="W">3</characteristic>
+          </characteristics>
+        </profile>
+      </profiles>
+      <selectionEntries>
+        <selectionEntry type="model" import="true" name="Crew" id="zzap-model">
+          <constraints><constraint type="min" value="1" id="z-c"/></constraints>
+          <profiles>
+            <profile name="Zzap gun" typeId="t-ranged" typeName="Ranged Weapons">
+              <characteristics>
+                <characteristic name="Range">36"</characteristic>
+                <characteristic name="A">1</characteristic>
+                <characteristic name="BS">5+</characteristic>
+                <characteristic name="S">2D6</characteristic>
+                <characteristic name="AP">-2</characteristic>
+                <characteristic name="D">D3</characteristic>
+                <characteristic name="Keywords">-</characteristic>
+              </characteristics>
+            </profile>
+          </profiles>
+        </selectionEntry>
+      </selectionEntries>
+      <costs><cost name="pts" value="60"/></costs>
+    </selectionEntry>
+  </sharedSelectionEntries>
+</catalogue>`
+
+  test('a 2D6-Strength weapon imports instead of dropping', () => {
+    const { datasheets, issues } = importCatalogue(randomStrengthCat)
+    expect(issues).toEqual([])
+    const zzap = datasheets[0]?.weapons.find((w) => w.name === 'Zzap gun')
+    expect(zzap?.strength).toBe('2D6')
+  })
+})
