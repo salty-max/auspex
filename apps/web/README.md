@@ -14,13 +14,16 @@ client. The combat simulator (#17) and army builder (#18) build on this scaffold
 
 ## Run
 
+From the repo root (Turborepo fans out to each app):
+
 ```sh
-bun run dev        # Vite dev server on :5173 (proxies /api, /factions, … to :3000)
-bun run build      # typecheck + production bundle
+bun run dev        # Postgres + API + web together
+bun run dev:web    # just this app (Vite on :5173)
 ```
 
-The dev server proxies API paths to `http://localhost:3000`, so run the API
-(`apps/api`) alongside for live data; the engine demo works with no API.
+Or from this directory: `bun run dev` (Vite) / `bun run build` (typecheck + bundle).
+The dev server proxies API paths to `http://localhost:3000`, so the API gives live
+data; the in-browser engine demo works with no API.
 
 ## Layout
 

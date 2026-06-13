@@ -32,7 +32,14 @@ splitting services; a service can always be extracted later if a real scaling ne
 
 ```sh
 bun install
+bun run dev       # Postgres + API + web, fanned out by turbo
+bun run dev:web   # just the web (Vite on :5173)
+bun run dev:api   # just Postgres + the API (:3000)
 bun test          # run every package's tests
 bun run typecheck
 bun run lint
 ```
+
+`bun run dev` starts the local Postgres (`db:up`) and runs every app's own `dev`
+through Turborepo; `db:down` stops the database. Running the web alone is enough
+for the in-browser engine — the API is only needed for live data.

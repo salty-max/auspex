@@ -7,11 +7,13 @@ user.
 
 ## Run
 
+From the repo root, `bun run dev:api` starts Postgres and the API together (or
+`bun run dev` for the whole stack). The first time, apply migrations:
+
 ```sh
-docker compose up -d         # local Postgres
+bun run db:up                # local Postgres (from repo root)
 export DATABASE_URL=postgres://auspex:auspex@localhost:5432/auspex
-bun run db:migrate           # apply migrations
-bun run dev                  # hot-reloading dev server
+bun run --filter @auspex/api db:migrate
 ```
 
 Configuration via environment:
