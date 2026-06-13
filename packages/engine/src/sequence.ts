@@ -50,13 +50,35 @@ export function simulate(
       : hitProbability(weapon.skill, mods.hit ?? 0, mods.rerollHit)
   // Anti lowers the Critical Wound threshold when the target keyword matches.
   const critWoundOn = mods.antiActive ? (weapon.keywords?.anti ?? 6) : 6
-  const pWound = woundProbability(
-    weapon.strength,
-    target.toughness,
-    mods.wound ?? 0,
-    mods.rerollWound,
-    critWoundOn
-  )
+
+  // Strength may be random (e.g. a 2D6 Zzap gun): marginalize the wound and
+  // critical-wound probabilities over its distribution. A flat Strength is a
+  // point mass, so this reduces to a single term.
+  const strength = diceDistribution(weapon.strength)
+  let pWound = 0
+  let pCritWound = 0
+  for (let s = 0; s < strength.length; s++) {
+    const weight = strength[s]
+    if (!weight) continue
+    pWound +=
+      weight *
+      woundProbability(
+        s,
+        target.toughness,
+        mods.wound ?? 0,
+        mods.rerollWound,
+        critWoundOn
+      )
+    pCritWound +=
+      weight *
+      critProbability(
+        woundThreshold(s, target.toughness),
+        mods.wound ?? 0,
+        mods.rerollWound,
+        critWoundOn
+      )
+  }
+
   const pFail = saveFailProbability({
     save: target.save,
     invuln: target.invuln,
@@ -71,12 +93,6 @@ export function simulate(
     weapon.skill === 'torrent'
       ? 0
       : critProbability(weapon.skill, mods.hit ?? 0, mods.rerollHit)
-  const pCritWound = critProbability(
-    woundThreshold(weapon.strength, target.toughness),
-    mods.wound ?? 0,
-    mods.rerollWound,
-    critWoundOn
-  )
 
   // Unsaved wounds carried by one attack.
   const perAttack = unsavedPerAttack(
