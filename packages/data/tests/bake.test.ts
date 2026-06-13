@@ -3,7 +3,7 @@ import { toEngineTarget, toEngineWeapon } from '@auspex/schema'
 import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
 
-import { bakeCatalogue, stampProvenance } from '../src/bake'
+import { bakeAll, bakeCatalogue, stampProvenance } from '../src/bake'
 import {
   getDatasheet,
   listDatasheets,
@@ -14,6 +14,12 @@ import {
 
 const xml = await Bun.file(
   new URL('fixtures/mini.cat', import.meta.url).pathname
+).text()
+const thinFaction = await Bun.file(
+  new URL('fixtures/thin-faction.cat', import.meta.url).pathname
+).text()
+const library = await Bun.file(
+  new URL('fixtures/library.cat', import.meta.url).pathname
 ).text()
 
 function bakeInMemory(): Database {
@@ -120,5 +126,28 @@ describe('bakeCatalogue', () => {
     // 1 attack, BS3+ (2/3) × wound S4 vs T4 (1/2) × failed 3+/5++ save with
     // AP 0 (1/3): the canonical bolter shot, straight out of the database.
     expect(result.mean).toBeCloseTo((2 / 3) * (1 / 2) * (1 / 3), 10)
+  })
+})
+
+describe('bakeAll — dependency resolution', () => {
+  test('a thin faction is baked with its library; the library is not a faction', () => {
+    const db = openDataDb(':memory:')
+    // Order should not matter: the library comes before the faction here.
+    const reports = bakeAll(db, [{ xml: library }, { xml: thinFaction }])
+
+    expect(reports.map((r) => r.faction)).toEqual(['Test Legion'])
+    expect(listFactions(db)).toEqual(['Test Legion'])
+
+    const names = listDatasheets(db, 'Test Legion').map((d) => d.name)
+    expect(names).toEqual(['Library Squad', 'Native Squad'])
+    const linked = getDatasheet(db, 'Test Legion', 'library-squad')
+    expect(linked?.weapons[0]?.name).toBe('Library Bolter')
+  })
+
+  test('a self-contained faction needs no library', () => {
+    const db = openDataDb(':memory:')
+    const reports = bakeAll(db, [{ xml }])
+    expect(reports[0].faction).toBe('Test Chapter')
+    expect(reports[0].datasheets).toBe(1)
   })
 })

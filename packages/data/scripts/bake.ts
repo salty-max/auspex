@@ -1,52 +1,78 @@
 /**
- * Bake BSData catalogues into the SQLite artifact (manual, not run in CI):
+ * Bake every BSData 10e faction into the SQLite artifact (manual, not run in CI):
  *
  *   bun run bake [ref]
  *
- * `ref` is a BSData/wh40k-10e commit SHA or branch (default: main). Catalogues
- * to bake are listed below; overrides come from overrides/<slug>.yaml.
+ * `ref` is a BSData/wh40k-10e commit SHA or branch; it defaults to the pinned ref
+ * below so bakes are reproducible. Every `.cat` in the repo is fetched; faction
+ * catalogues are baked with their library dependencies, and overrides come from
+ * overrides/<faction-slug>.yaml.
  */
 import { existsSync, mkdirSync, rmSync } from 'node:fs'
 import path from 'node:path'
 
-import { bakeCatalogue, openDataDb, stampProvenance } from '../src/index'
+import { catalogueMeta } from '@auspex/importer'
+
+import {
+  type BakeInput,
+  bakeAll,
+  openDataDb,
+  stampProvenance,
+} from '../src/index'
 import { overridesFileSchema } from '../src/overrides'
 
 const SOURCE = 'BSData/wh40k-10e'
-const CATALOGUES = ['Imperium - Space Marines']
+/** Pinned for reproducibility — bump deliberately when refreshing the data. */
+const PINNED_REF = '9e3bb4b947c6fcc429dac3518d6fc8f74c095024'
 
-const ref = process.argv[2] ?? 'main'
+const ref = process.argv[2] ?? PINNED_REF
 const here = path.dirname(new URL(import.meta.url).pathname)
 const artifactDir = path.join(here, '..', 'artifacts')
 const dbPath = path.join(artifactDir, 'auspex.sqlite')
+
+function slug(faction: string): string {
+  return faction
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, '-')
+    .replaceAll(/^-|-$/g, '')
+}
+
+async function loadOverrides(faction: string): Promise<BakeInput['overrides']> {
+  const file = path.join(here, '..', 'overrides', `${slug(faction)}.yaml`)
+  if (!existsSync(file)) return undefined
+  return overridesFileSchema.parse(Bun.YAML.parse(await Bun.file(file).text()))
+}
+
+// List every catalogue in the repo at the pinned ref.
+const tree = (await (
+  await fetch(`https://api.github.com/repos/${SOURCE}/git/trees/${ref}`)
+).json()) as { tree: { path: string }[] }
+const files = tree.tree
+  .map((node) => node.path)
+  .filter((p) => p.endsWith('.cat'))
+
+const catalogues: BakeInput[] = []
+for (const file of files) {
+  const url = `https://raw.githubusercontent.com/${SOURCE}/${ref}/${encodeURIComponent(file)}`
+  const xml = await (await fetch(url)).text()
+  const overrides = await loadOverrides(catalogueMeta(xml).faction)
+  catalogues.push({ xml, ...(overrides && { overrides }) })
+}
 
 mkdirSync(artifactDir, { recursive: true })
 rmSync(dbPath, { force: true })
 const db = openDataDb(dbPath)
 
-for (const name of CATALOGUES) {
-  const url = `https://raw.githubusercontent.com/${SOURCE}/${ref}/${encodeURIComponent(name)}.cat`
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`failed to fetch ${url}: ${response.status}`)
-  }
-  const xml = await response.text()
-
-  const slug = name
-    .toLowerCase()
-    .replace(/^.*- /, '')
-    .replaceAll(/[^a-z0-9]+/g, '-')
-  const overridesPath = path.join(here, '..', 'overrides', `${slug}.yaml`)
-  const overrides = existsSync(overridesPath)
-    ? overridesFileSchema.parse(
-        Bun.YAML.parse(await Bun.file(overridesPath).text())
-      )
-    : []
-
-  const report = bakeCatalogue(db, { xml, overrides })
+const reports = bakeAll(db, catalogues)
+let totalDs = 0
+let totalIssues = 0
+for (const r of reports.sort((a, b) => b.datasheets - a.datasheets)) {
+  totalDs += r.datasheets
+  totalIssues += r.issues
   console.log(
-    `${report.faction}: ${report.datasheets} datasheets, ${report.weapons} weapons, ` +
-      `${report.issues} issues, ${report.overridesApplied} overrides applied`
+    `${r.faction.padEnd(28)} ${String(r.datasheets).padStart(3)}ds ` +
+      `${String(r.weapons).padStart(4)}w ${String(r.issues).padStart(3)}i ` +
+      `${r.overridesApplied} ovr`
   )
 }
 
@@ -57,4 +83,7 @@ stampProvenance(db, {
   importerVersion: '0.0.0',
 })
 db.close()
-console.log(`\nartifact: ${dbPath}`)
+console.log(
+  `\n${reports.length} factions, ${totalDs} datasheets, ${totalIssues} issues`
+)
+console.log(`artifact: ${dbPath}`)

@@ -1,4 +1,5 @@
 export {
+  bakeAll,
   bakeCatalogue,
   type BakeInput,
   type BakeReport,
