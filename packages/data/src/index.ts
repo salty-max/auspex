@@ -19,3 +19,4 @@ export {
   overrideSchema,
   overridesFileSchema,
 } from './overrides'
+export { type DatasheetLookup, datasheetSource } from './source'
