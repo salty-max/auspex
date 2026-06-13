@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<catalogue xmlns="http://www.battlescribe.net/schema/catalogueSchema" library="true" id="test-library" name="Imperium - Test Legion - Library" type="catalogue">
+  <sharedSelectionEntries>
+    <selectionEntry type="unit" import="true" name="Library Squad" hidden="false" id="lib-unit">
+      <profiles>
+        <profile id="lib-p-unit" name="Library Squad" hidden="false" typeId="t-unit" typeName="Unit">
+          <characteristics>
+            <characteristic name="M" typeId="c-m">6&quot;</characteristic>
+            <characteristic name="T" typeId="c-t">4</characteristic>
+            <characteristic name="SV" typeId="c-sv">3+</characteristic>
+            <characteristic name="W" typeId="c-w">2</characteristic>
+          </characteristics>
+        </profile>
+      </profiles>
+      <selectionEntries>
+        <selectionEntry type="model" import="true" name="Library Trooper" hidden="false" id="lib-model">
+          <constraints>
+            <constraint type="min" value="5" field="selections" scope="parent" id="lib-con-min"/>
+            <constraint type="max" value="5" field="selections" scope="parent" id="lib-con-max"/>
+          </constraints>
+          <profiles>
+            <profile id="lib-p-gun" name="Library Bolter" hidden="false" typeId="t-ranged" typeName="Ranged Weapons">
+              <characteristics>
+                <characteristic name="Range" typeId="c-range">24&quot;</characteristic>
+                <characteristic name="A" typeId="c-a">2</characteristic>
+                <characteristic name="BS" typeId="c-bs">3+</characteristic>
+                <characteristic name="S" typeId="c-s">4</characteristic>
+                <characteristic name="AP" typeId="c-ap">0</characteristic>
+                <characteristic name="D" typeId="c-d">1</characteristic>
+                <characteristic name="Keywords" typeId="c-kw">-</characteristic>
+              </characteristics>
+            </profile>
+          </profiles>
+        </selectionEntry>
+      </selectionEntries>
+      <costs>
+        <cost name="pts" typeId="c-pts" value="80"/>
+      </costs>
+    </selectionEntry>
+  </sharedSelectionEntries>
+</catalogue>

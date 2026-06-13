@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<catalogue xmlns="http://www.battlescribe.net/schema/catalogueSchema" id="thin-faction" name="Imperium - Test Legion" type="catalogue">
+  <catalogueLinks>
+    <catalogueLink id="cl-1" name="Imperium - Test Legion - Library" targetId="test-library" type="catalogue" importRootEntries="false"/>
+  </catalogueLinks>
+  <sharedSelectionEntries>
+    <selectionEntry type="unit" import="true" name="Native Squad" hidden="false" id="native-unit">
+      <profiles>
+        <profile id="nat-p-unit" name="Native Squad" hidden="false" typeId="t-unit" typeName="Unit">
+          <characteristics>
+            <characteristic name="T" typeId="c-t">3</characteristic>
+            <characteristic name="SV" typeId="c-sv">5+</characteristic>
+            <characteristic name="W" typeId="c-w">1</characteristic>
+          </characteristics>
+        </profile>
+      </profiles>
+      <selectionEntries>
+        <selectionEntry type="model" import="true" name="Native Trooper" hidden="false" id="nat-model">
+          <constraints>
+            <constraint type="min" value="10" field="selections" scope="parent" id="nat-con"/>
+            <constraint type="max" value="10" field="selections" scope="parent" id="nat-con2"/>
+          </constraints>
+        </selectionEntry>
+      </selectionEntries>
+      <costs>
+        <cost name="pts" typeId="c-pts" value="60"/>
+      </costs>
+    </selectionEntry>
+  </sharedSelectionEntries>
+  <entryLinks>
+    <entryLink import="true" name="Library Squad" hidden="false" type="selectionEntry" id="el-1" targetId="lib-unit"/>
+  </entryLinks>
+</catalogue>
