@@ -5,9 +5,11 @@ import { describe, expect, test } from 'bun:test'
 
 import { bakeAll, bakeCatalogue, stampProvenance } from '../src/bake'
 import {
+  findDatasheets,
   getDatasheet,
   listDatasheets,
   listFactions,
+  listKeywords,
   openDataDb,
   readProvenance,
 } from '../src/db'
@@ -149,5 +151,61 @@ describe('bakeAll — dependency resolution', () => {
     const reports = bakeAll(db, [{ xml }])
     expect(reports[0].faction).toBe('Test Chapter')
     expect(reports[0].datasheets).toBe(1)
+  })
+})
+
+describe('findDatasheets — keyword filtering', () => {
+  // The fixture's Test Squad carries the keywords ADEPTUS ASTARTES and INFANTRY.
+  const names = (rows: { name: string }[]): string[] => rows.map((r) => r.name)
+
+  test('filters by a single keyword off the index', () => {
+    const db = bakeInMemory()
+    expect(names(findDatasheets(db, { keywords: ['INFANTRY'] }))).toEqual([
+      'Test Squad',
+    ])
+    expect(findDatasheets(db, { keywords: ['VEHICLE'] })).toEqual([])
+  })
+
+  test('multiple keywords require all of them (AND)', () => {
+    const db = bakeInMemory()
+    expect(
+      names(findDatasheets(db, { keywords: ['INFANTRY', 'ADEPTUS ASTARTES'] }))
+    ).toEqual(['Test Squad'])
+    expect(findDatasheets(db, { keywords: ['INFANTRY', 'VEHICLE'] })).toEqual(
+      []
+    )
+  })
+
+  test('faction and points filters compose', () => {
+    const db = bakeInMemory()
+    expect(findDatasheets(db, { faction: 'Test Chapter' })).toHaveLength(1)
+    expect(findDatasheets(db, { faction: 'Orks' })).toEqual([])
+    expect(findDatasheets(db, { maxPoints: 50 })).toEqual([])
+    expect(names(findDatasheets(db, { maxPoints: 80 }))).toEqual(['Test Squad'])
+  })
+
+  test('the summary carries the base-size points', () => {
+    const db = bakeInMemory()
+    expect(findDatasheets(db, { faction: 'Test Chapter' })[0]).toEqual({
+      faction: 'Test Chapter',
+      id: 'test-squad',
+      name: 'Test Squad',
+      points: 80,
+    })
+  })
+
+  test('listKeywords returns the distinct keywords', () => {
+    const db = bakeInMemory()
+    expect(listKeywords(db)).toEqual(['ADEPTUS ASTARTES', 'INFANTRY'])
+    expect(listKeywords(db, 'Orks')).toEqual([])
+  })
+
+  test('a re-bake replaces a datasheet’s keywords rather than duplicating', () => {
+    const db = bakeInMemory()
+    bakeCatalogue(db, { xml })
+    const count = db
+      .prepare('SELECT COUNT(*) AS n FROM datasheet_keywords')
+      .get() as { n: number }
+    expect(count.n).toBe(2)
   })
 })
