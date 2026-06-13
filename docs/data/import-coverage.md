@@ -25,9 +25,10 @@ overrides, the non-size residue falls into three understood buckets:
   Cyber-mastiff, Burna Boy, Loota — that have no standalone datasheet. They are
   correctly **not** emitted as datasheets; the audit line records that the
   importer looked and found no statline.
-- **Random Strength (~3):** the Ork Zzap gun and kin have a Strength of `2D6` /
-  `D6+6`. The engine's `Weapon.strength` is a fixed number, so these weapons
-  cannot be represented and are dropped. An engine limitation, not a data bug.
+
+Random-Strength weapons (the Ork Zzap gun's `2D6` / `D6+6`) are fully modelled —
+the engine marginalizes the wound roll over the Strength distribution, so these
+weapons import and simulate like any other.
 
 Genuine BSData typos (a bare `3` skill or `8+` strength, an AP printed as `-`) are
 either parsed leniently by the importer where the intent is unambiguous, or fixed
