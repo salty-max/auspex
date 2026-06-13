@@ -8,15 +8,18 @@ user.
 ## Run
 
 From the repo root, `bun run dev:api` starts Postgres and the API together (or
-`bun run dev` for the whole stack). The first time, apply migrations:
+`bun run dev` for the whole stack). First-time setup — copy the env file, generate
+a session secret, and apply migrations:
 
 ```sh
+cp apps/api/.env.example apps/api/.env
+echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> apps/api/.env
+
 bun run db:up                # local Postgres (from repo root)
-export DATABASE_URL=postgres://auspex:auspex@localhost:5432/auspex
 bun run --filter @auspex/api db:migrate
 ```
 
-Configuration via environment:
+The API auto-loads `apps/api/.env` (Bun). Configuration via environment:
 
 | Variable             | Default                                 | Purpose                           |
 | -------------------- | --------------------------------------- | --------------------------------- |

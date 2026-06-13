@@ -5,3 +5,6 @@ coverage
 *.tsbuildinfo
 .DS_Store
 packages/data/artifacts/
+.env
+.env.*
+!.env.example
