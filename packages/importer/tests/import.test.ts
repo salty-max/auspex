@@ -131,6 +131,49 @@ describe('catalogueMeta', () => {
   })
 })
 
+describe('importCatalogue — statless entries', () => {
+  const cat = `<?xml version="1.0" encoding="UTF-8"?>
+<catalogue xmlns="http://www.battlescribe.net/schema/catalogueSchema" id="stat-cat" name="Xenos - Mob" type="catalogue">
+  <sharedSelectionEntries>
+    <selectionEntry type="unit" import="true" name="Real Mob" id="real-unit">
+      <profiles>
+        <profile name="Real Mob" typeId="t-unit" typeName="Unit">
+          <characteristics>
+            <characteristic name="T">5</characteristic>
+            <characteristic name="SV">6+</characteristic>
+            <characteristic name="W">1</characteristic>
+          </characteristics>
+        </profile>
+      </profiles>
+      <selectionEntries>
+        <selectionEntry type="model" import="true" name="Mobster" id="mob-model">
+          <constraints><constraint type="min" value="10" id="m-c"/></constraints>
+        </selectionEntry>
+      </selectionEntries>
+      <costs><cost name="pts" value="80"/></costs>
+    </selectionEntry>
+    <selectionEntry type="model" import="true" name="Component Boy" id="comp-model">
+      <constraints><constraint type="min" value="1" id="c-c"/></constraints>
+    </selectionEntry>
+    <selectionEntry type="unit" import="true" name="Broken Unit" id="broken-unit">
+      <costs><cost name="pts" value="50"/></costs>
+    </selectionEntry>
+  </sharedSelectionEntries>
+</catalogue>`
+
+  test('a component model with no statline is skipped without an issue', () => {
+    const { datasheets, issues } = importCatalogue(cat)
+    expect(datasheets.map((d) => d.name)).toEqual(['Real Mob'])
+    // The component model is silently skipped...
+    expect(issues.some((i) => i.entry === 'Component Boy')).toBe(false)
+    // ...but a unit entry that genuinely lacks a statline is still reported.
+    expect(issues).toContainEqual({
+      entry: 'Broken Unit',
+      reason: 'no Unit statline profile found',
+    })
+  })
+})
+
 describe('importCatalogue — random Strength', () => {
   const randomStrengthCat = `<?xml version="1.0" encoding="UTF-8"?>
 <catalogue xmlns="http://www.battlescribe.net/schema/catalogueSchema" id="zzap-cat" name="Xenos - Zzap" type="catalogue">
