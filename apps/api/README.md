@@ -29,6 +29,11 @@ The artifact is produced by `bun run bake` in `@auspex/data` and is not committe
 | GET    | `/factions/:faction/datasheets`     | Datasheets, filterable |
 | GET    | `/factions/:faction/datasheets/:id` | One datasheet          |
 | GET    | `/keywords`                         | Distinct keywords      |
+| GET    | `/docs`                             | Scalar API reference   |
+| GET    | `/openapi.json`                     | OpenAPI 3.1 spec       |
 
 The datasheet list accepts `?keywords=A,B` (AND) and `?maxPoints=N`. Errors return
 `{ error: { code, message } }`. Requests are rate-limited per client.
+
+The OpenAPI spec is generated from the route schemas, so it never drifts from the
+code. Browse and try the endpoints live at `/docs`.

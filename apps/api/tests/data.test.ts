@@ -1,6 +1,5 @@
 import { bakeCatalogue, openDataDb } from '@auspex/data'
 import { beforeAll, describe, expect, test } from 'bun:test'
-import type { Hono } from 'hono'
 
 import { createApp } from '../src/app'
 
@@ -8,7 +7,7 @@ const xml = await Bun.file(
   new URL('fixtures/mini.cat', import.meta.url).pathname
 ).text()
 
-let app: Hono
+let app: ReturnType<typeof createApp>
 
 beforeAll(() => {
   const db = openDataDb(':memory:')
@@ -108,5 +107,29 @@ describe('GET /keywords', () => {
     })
     const empty = await get('/keywords?faction=Orks')
     expect(empty.body).toEqual({ keywords: [] })
+  })
+})
+
+describe('API documentation', () => {
+  test('/openapi.json is a valid spec covering the read endpoints', async () => {
+    const { status, body } = await get('/openapi.json')
+    expect(status).toBe(200)
+    const spec = body as { openapi: string; paths: Record<string, unknown> }
+    expect(spec.openapi).toBe('3.1.0')
+    expect(Object.keys(spec.paths)).toEqual(
+      expect.arrayContaining([
+        '/factions',
+        '/factions/{faction}/datasheets',
+        '/factions/{faction}/datasheets/{id}',
+        '/keywords',
+      ])
+    )
+  })
+
+  test('/docs serves the Scalar reference UI', async () => {
+    const res = await app.request('/docs')
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('text/html')
+    expect(await res.text()).toContain('/openapi.json')
   })
 })
