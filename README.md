@@ -18,8 +18,8 @@ packages/
   data/     Baked faction artifacts: SQLite + provenance + hand-edited YAML overrides
   resolver/ Binds a parsed list to real datasheets — validates, costs, diagnoses
 apps/
-  api/      Hono API serving the baked data; Postgres lists + auth         (in progress)
-  web/      Army builder + combat simulator UI                            (planned)
+  api/      Hono API: baked data, Postgres lists, BetterAuth, typed client
+  web/      React + Vite SPA (Tailwind + shadcn, TanStack Query); engine in-browser
 ```
 
 ## Why a monolith, not microservices
