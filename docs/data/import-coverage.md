@@ -16,15 +16,16 @@ stale patch fails the bake.
 ## Known residual issues
 
 The artifact's `issues` table is the raw import audit. After the importer and
-overrides, the non-size residue falls into three understood buckets:
+overrides, the only non-size residue is:
 
 - **Variable unit size (~385):** BSData prices unit sizes through constraint/
   modifier machinery the importer does not evaluate, so a unit imports at its
   base size with that size's points. Documented limitation, not a bug.
-- **No Unit statline (~13):** attached or component models — Wolf Scout,
-  Cyber-mastiff, Burna Boy, Loota — that have no standalone datasheet. They are
-  correctly **not** emitted as datasheets; the audit line records that the
-  importer looked and found no statline.
+
+Component models — Wolf Scout, Cyber-mastiff, Burna Boy, Loota — have no standalone
+statline because their stats live on the parent unit (Wolf Scouts, Burna Boyz, …),
+which imports in its own right. The importer skips them silently; only a genuine
+_unit_ entry that lacks a statline is flagged.
 
 Random-Strength weapons (the Ork Zzap gun's `2D6` / `D6+6`) are fully modelled —
 the engine marginalizes the wound roll over the Strength distribution, so these
