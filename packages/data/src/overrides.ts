@@ -16,7 +16,7 @@ export const overrideSchema = z.object({
   reason: z.string().min(1),
   /** Deep-merged into the datasheet (objects merge, scalars and arrays replace). */
   set: z.record(z.string(), z.unknown()).optional(),
-  /** Complete weapon profiles appended to the datasheet. */
+  /** Weapon profiles to add, replacing any existing weapon of the same name. */
   addWeapons: z.array(weaponProfileSchema).optional(),
 })
 
@@ -82,10 +82,13 @@ export function applyOverrides(
       candidate = deepMerge(candidate, override.set)
     }
     if (override.addWeapons) {
-      candidate.weapons = [
-        ...(candidate.weapons as unknown[]),
-        ...override.addWeapons,
-      ]
+      // Replace-or-append by name, so a patch is idempotent even once the
+      // importer learns to parse the weapon the override was added to fix.
+      const patched = new Map(
+        (candidate.weapons as { name: string }[]).map((w) => [w.name, w])
+      )
+      for (const weapon of override.addWeapons) patched.set(weapon.name, weapon)
+      candidate.weapons = [...patched.values()]
     }
 
     const parsed = datasheetSchema.safeParse(candidate)

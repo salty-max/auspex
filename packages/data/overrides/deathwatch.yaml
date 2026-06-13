@@ -1,0 +1,21 @@
+# Hand-edited patches applied at bake time. Every entry needs a reason; an
+# entry whose datasheet no longer exists fails the bake (remove stale patches).
+
+- datasheet: deathwatch-terminator-squad
+  reason: >-
+    BSData prints the Chainfist strength as "8+", but strength is a flat
+    characteristic, not a roll, so the importer drops the weapon. Re-added with
+    the printed profile (S8) from the datasheet.
+  addWeapons:
+    - name: Chainfist
+      kind: melee
+      attacks: 3
+      skill: 4
+      strength: 8
+      ap: 2
+      damage: 2
+      abilities:
+        anti:
+          keyword: VEHICLE
+          threshold: 3
+        other: []
