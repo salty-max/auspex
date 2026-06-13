@@ -64,6 +64,7 @@ export const datasheetFilterQuerySchema = z.object({
 export const armyListSchema = z
   .object({
     id: z.string(),
+    owner: z.string(),
     name: z.string(),
     faction: z.string(),
     body: z.string(),

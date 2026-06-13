@@ -41,6 +41,7 @@ describe('typed contract', () => {
     const resolved: GetListResponse = {
       list: {
         id: '1',
+        owner: 'user-1',
         name: 'X',
         faction: 'Orks',
         body: 'list "X"',

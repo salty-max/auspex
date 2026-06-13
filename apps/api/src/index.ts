@@ -1,6 +1,8 @@
 import { openDataDb } from '@auspex/data'
 
 import { createApp } from './app'
+import { createAuth } from './auth/auth'
+import { betterAuthProvider } from './auth/provider'
 import { connectPostgres } from './db/client'
 import { drizzleListRepository } from './lists/repository'
 import { initObservability } from './observability'
@@ -21,6 +23,7 @@ const { db: listsDb } = connectPostgres(databaseUrl)
 const app = createApp({
   db: openDataDb(dbPath),
   lists: drizzleListRepository(listsDb),
+  auth: betterAuthProvider(createAuth(listsDb)),
 })
 
 export default {

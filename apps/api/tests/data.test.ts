@@ -2,6 +2,7 @@ import { bakeCatalogue, openDataDb } from '@auspex/data'
 import { beforeAll, describe, expect, test } from 'bun:test'
 
 import { createApp } from '../src/app'
+import { fakeAuthProvider } from '../src/auth/provider'
 import { inMemoryListRepository } from '../src/lists/repository'
 
 const xml = await Bun.file(
@@ -15,7 +16,11 @@ beforeAll(() => {
   // The fixture's Test Squad: faction "Test Chapter", keywords ADEPTUS ASTARTES
   // + INFANTRY, 80 pts.
   bakeCatalogue(db, { xml })
-  app = createApp({ db, lists: inMemoryListRepository() })
+  app = createApp({
+    db,
+    lists: inMemoryListRepository(),
+    auth: fakeAuthProvider('test-user'),
+  })
 })
 
 async function get(path: string): Promise<{ status: number; body: unknown }> {

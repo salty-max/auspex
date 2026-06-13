@@ -37,3 +37,8 @@ export function badRequest(message: string): ApiError {
 export function notFound(message: string): ApiError {
   return new ApiError(404, 'not_found', message)
 }
+
+/** A 401 for a request with no authenticated user. */
+export function unauthorized(message: string): ApiError {
+  return new ApiError(401, 'unauthorized', message)
+}
