@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
+import { critProbability, woundProbability, woundThreshold } from '../src/rules'
 import { inflictMortalWounds, simulate } from '../src/sequence'
 import type { Target, Weapon } from '../src/types'
 
@@ -676,6 +677,62 @@ describe('simulate', () => {
     expect(explicit.mean).toBeCloseTo(defaulted.mean, 10)
     // Cover improves the 5+ save to 4+: fail 3/6 instead of 4/6.
     expect(defaulted.mean).toBeCloseTo(10 * (2 / 3) * (4 / 6) * (3 / 6), 10)
+  })
+
+  test('random Strength marginalizes the wound probability', () => {
+    // Torrent 2D6 Strength, no usable save (7+), vs T4: the wound probability is
+    // E_s[woundProb(s, 4)] = Σ P(s)·woundProb(s,4) = 149/216.
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: '2D6',
+      ap: 0,
+      damage: 1,
+    }
+    const target: Target = { toughness: 4, save: 7, wounds: 1, models: 1 }
+    expect(simulate(weapon, target).mean).toBeCloseTo(149 / 216, 10)
+  })
+
+  test('a flat Strength as a number, string, or point die all agree', () => {
+    const target: Target = { toughness: 4, save: 7, wounds: 1, models: 1 }
+    const base: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 4,
+      ap: 0,
+      damage: 1,
+    }
+    const asNumber = simulate(base, target).mean
+    const asString = simulate({ ...base, strength: '4' }, target).mean
+    expect(asString).toBeCloseTo(asNumber, 10)
+    // S4 vs T4 wounds on 4+.
+    expect(asNumber).toBeCloseTo(1 / 2, 10)
+  })
+
+  test('random Strength composes with Anti and Devastating Wounds', () => {
+    // D6 Strength, Anti 4+ (crit wounds on 4+), Devastating (crit wounds skip the
+    // save). The expected mean marginalizes the per-Strength composition exactly
+    // the way the engine does — an independent check of the marginalization loop.
+    const weapon: Weapon = {
+      attacks: 1,
+      skill: 'torrent',
+      strength: 'D6',
+      ap: 0,
+      damage: 1,
+      keywords: { anti: 4, devastatingWounds: true },
+    }
+    const target: Target = { toughness: 4, save: 3, wounds: 1, models: 1 }
+    const pFail = 1 / 3 // 3+ save, AP 0
+    let expected = 0
+    for (let s = 1; s <= 6; s++) {
+      const pWound = woundProbability(s, 4, 0, undefined, 4)
+      const pCrit = critProbability(woundThreshold(s, 4), 0, undefined, 4)
+      expected += (1 / 6) * (pCrit + (pWound - pCrit) * pFail)
+    }
+    expect(simulate(weapon, target, { antiActive: true }).mean).toBeCloseTo(
+      expected,
+      10
+    )
   })
 
   test('percentile reads quantiles off the damage distribution', () => {

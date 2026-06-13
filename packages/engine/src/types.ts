@@ -36,7 +36,7 @@ export interface Weapon {
   /** Ballistic/Weapon Skill, as the N+ required to hit. `'torrent'` auto-hits. */
   skill: number | 'torrent'
   /** Strength characteristic. */
-  strength: number
+  strength: DiceExpr
   /** Armour penetration as a positive number (e.g. `2` means AP -2). */
   ap: number
   /** Damage characteristic. */
