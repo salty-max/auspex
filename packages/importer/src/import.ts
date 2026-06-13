@@ -34,33 +34,87 @@ export interface ImportResult {
   issues: ImportIssue[]
 }
 
-/** Import a BSData catalogue file (`.cat` XML content) into schema datasheets. */
-export function importCatalogue(xml: string): ImportResult {
+/**
+ * Import a BSData catalogue (`.cat` XML) into schema datasheets. Thin faction
+ * catalogues hold their roster as `entryLink`s into separate library catalogues;
+ * pass those libraries' XML so cross-file links resolve. Self-contained factions
+ * (e.g. Space Marines) need no libraries.
+ */
+export function importCatalogue(
+  xml: string,
+  libraries: string[] = []
+): ImportResult {
   const catalogue = parseCatalogueXml(xml)
-  const shared = indexById(catalogue)
-  const faction = (attr(catalogue, 'name') ?? 'Unknown').replace(/^.*- /, '')
 
+  // One id index across the faction and every library, so entry/info links
+  // resolve no matter which file defines their target. The faction wins on the
+  // rare id collision.
+  const shared = new Map<string, XmlNode>()
+  for (const tree of [catalogue, ...libraries.map(parseCatalogueXml)]) {
+    for (const [id, node] of indexById(tree)) {
+      if (!shared.has(id)) shared.set(id, node)
+    }
+  }
+
+  const faction = (attr(catalogue, 'name') ?? 'Unknown').replace(/^.*- /, '')
   const datasheets: Datasheet[] = []
   const issues: ImportIssue[] = []
+  const emitted = new Set<string>()
 
-  for (const entry of children(
-    catalogue,
-    'sharedSelectionEntries',
-    'selectionEntry'
-  )) {
-    const type = attr(entry, 'type')
-    if (type !== 'unit' && type !== 'model') continue
-    const name = attr(entry, 'name') ?? '(unnamed)'
-
+  for (const { node, name } of discoverUnits(catalogue, shared)) {
     try {
-      const sheet = buildDatasheet(entry, name, faction, shared, issues)
-      if (sheet) datasheets.push(sheet)
+      const sheet = buildDatasheet(node, name, faction, shared, issues)
+      if (sheet && !emitted.has(sheet.id)) {
+        emitted.add(sheet.id)
+        datasheets.push(sheet)
+      }
     } catch (error) {
       issues.push({ entry: name, reason: String(error) })
     }
   }
 
   return { datasheets, issues }
+}
+
+/**
+ * The faction's unit entries: directly-defined unit/model selection entries, plus
+ * the roster `entryLink`s that resolve (through the merged index) to a unit/model
+ * entry in a library.
+ */
+function discoverUnits(
+  catalogue: XmlNode,
+  shared: Map<string, XmlNode>
+): { node: XmlNode; name: string }[] {
+  const units: { node: XmlNode; name: string }[] = []
+  const seen = new Set<XmlNode>()
+  const isUnit = (node: XmlNode): boolean => {
+    const type = attr(node, 'type')
+    return type === 'unit' || type === 'model'
+  }
+  const add = (node: XmlNode, name: string): void => {
+    if (isUnit(node) && !seen.has(node)) {
+      seen.add(node)
+      units.push({ node, name })
+    }
+  }
+
+  for (const path of [
+    ['sharedSelectionEntries', 'selectionEntry'],
+    ['selectionEntries', 'selectionEntry'],
+  ]) {
+    for (const entry of children(catalogue, ...path)) {
+      add(entry, attr(entry, 'name') ?? '(unnamed)')
+    }
+  }
+
+  for (const link of children(catalogue, 'entryLinks', 'entryLink')) {
+    const target = shared.get(attr(link, 'targetId') ?? '')
+    if (target) {
+      add(target, attr(link, 'name') ?? attr(target, 'name') ?? '(unnamed)')
+    }
+  }
+
+  return units
 }
 
 /** Collect the unit's subtree, following entry/info links (cycle-safe). */

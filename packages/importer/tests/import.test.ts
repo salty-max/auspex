@@ -73,3 +73,41 @@ describe('importCatalogue', () => {
     expect(result.meanModelsSlain).toBeCloseTo(3.5 * p - (1 / 6) * p ** 6, 10)
   })
 })
+
+const thinFaction = await Bun.file(
+  new URL('fixtures/thin-faction.cat', import.meta.url).pathname
+).text()
+const library = await Bun.file(
+  new URL('fixtures/library.cat', import.meta.url).pathname
+).text()
+
+describe('importCatalogue — linked libraries', () => {
+  test('a thin faction resolves its roster from a library', () => {
+    const { datasheets } = importCatalogue(thinFaction, [library])
+    const names = datasheets.map((d) => d.name).sort()
+    expect(names).toEqual(['Library Squad', 'Native Squad'])
+
+    const linked = datasheets.find((d) => d.name === 'Library Squad')
+    // The whole datasheet — statline, weapon and points — comes from the library.
+    expect(linked?.stats).toMatchObject({ toughness: 4, save: 3, wounds: 2 })
+    expect(linked?.weapons[0]?.name).toBe('Library Bolter')
+    expect(linked?.points).toEqual([{ models: 5, points: 80 }])
+  })
+
+  test('without the library, the linked unit is missing but direct units remain', () => {
+    const { datasheets } = importCatalogue(thinFaction)
+    expect(datasheets.map((d) => d.name)).toEqual(['Native Squad'])
+  })
+
+  test('passing a library redundantly does not duplicate units', () => {
+    const { datasheets } = importCatalogue(thinFaction, [library, library])
+    expect(datasheets).toHaveLength(2)
+  })
+
+  test('a self-contained catalogue is unchanged when given a library', () => {
+    const withLib = importCatalogue(xml, [library])
+    expect(withLib.datasheets.map((d) => d.id)).toEqual(
+      datasheets.map((d) => d.id)
+    )
+  })
+})
