@@ -17,7 +17,9 @@
     "@auspex/engine": "workspace:*",
     "@auspex/resolver": "workspace:*",
     "@auspex/schema": "workspace:*",
+    "@hono/zod-openapi": "^1.4.0",
     "@hono/zod-validator": "^0.8.0",
+    "@scalar/hono-api-reference": "^0.11.3",
     "@sentry/bun": "^10.57.0",
     "hono": "^4.12.25",
     "zod": "^4.3.5"
