@@ -13,7 +13,7 @@ text **list DSL** — built around a single normalized data model.
 packages/
   engine/   Exact probability engine for combat resolution (TS, zero-dependency, isomorphic)
   schema/   Normalized data model — datasheets, weapons, points (zod validators + engine converters)
-  dsl/      Text list language + parser                                    (planned)
+  dsl/      Army list text language — parser producing a source-mapped AST (parsil)
   importer/ BSData (BattleScribe) catalogue ingestion into the schema
   data/     Baked faction artifacts: SQLite + provenance + hand-edited YAML overrides
 apps/

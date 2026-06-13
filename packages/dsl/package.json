@@ -1,0 +1,30 @@
+{
+  "name": "@auspex/dsl",
+  "version": "0.0.0",
+  "description": "Army list text DSL — parser producing a source-mapped AST, built on parsil",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --sourcemap --target=browser --format=esm --packages external && tsc --emitDeclarationOnly -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "lint": "eslint . --max-warnings 0",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "parsil": "^3.0.0"
+  },
+  "devDependencies": {
+    "bun-types": "^1.3.13",
+    "typescript": "^6.0.3"
+  }
+}
