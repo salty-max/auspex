@@ -1,9 +1,14 @@
 import type { DiceExpr } from '@auspex/engine'
 import type { WeaponAbilities } from '@auspex/schema'
 
-/** Parse an `N+` roll characteristic (`"3+"` → 3). */
+/**
+ * Parse an `N+` roll characteristic (`"3+"` → 3). A bare integer (`"3"`) is a
+ * common BSData typo for the same value — BS/WS/SV are always roll targets, so the
+ * intent is unambiguous. The valid range (save 2..7, skill 2..6) is enforced by the
+ * schema, so a save of `"7+"` (no armour save) stays parseable.
+ */
 export function parseRoll(raw: string): number | undefined {
-  const match = /^(\d)\+$/.exec(raw.trim())
+  const match = /^(\d)\+?$/.exec(raw.trim())
   return match ? Number.parseInt(match[1], 10) : undefined
 }
 
@@ -19,8 +24,9 @@ export function parseInt10(raw: string): number | undefined {
   return match ? Number.parseInt(raw, 10) : undefined
 }
 
-/** Parse the AP characteristic: BSData prints `-1` for AP -1, `0` for none. */
+/** Parse the AP characteristic: BSData prints `-1` for AP -1, `0` or `-` for none. */
 export function parseAp(raw: string): number | undefined {
+  if (raw.trim() === '-') return 0
   const value = parseInt10(raw)
   if (value === undefined || value > 0) return undefined
   return Math.abs(value)

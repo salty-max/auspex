@@ -2,6 +2,7 @@ import { simulate } from '@auspex/engine'
 import { toEngineTarget, toEngineWeapon } from '@auspex/schema'
 import { describe, expect, test } from 'bun:test'
 
+import { catalogueMeta } from '../src/catalogue'
 import { importCatalogue } from '../src/import'
 
 const xml = await Bun.file(
@@ -109,5 +110,23 @@ describe('importCatalogue — linked libraries', () => {
     expect(withLib.datasheets.map((d) => d.id)).toEqual(
       datasheets.map((d) => d.id)
     )
+  })
+})
+
+describe('catalogueMeta', () => {
+  test('reads a faction catalogue and its library dependency', () => {
+    expect(catalogueMeta(thinFaction)).toEqual({
+      id: 'thin-faction',
+      name: 'Imperium - Test Legion',
+      faction: 'Test Legion',
+      isLibrary: false,
+      dependencies: ['test-library'],
+    })
+  })
+
+  test('flags a library catalogue', () => {
+    const meta = catalogueMeta(library)
+    expect(meta.isLibrary).toBe(true)
+    expect(meta.dependencies).toEqual([])
   })
 })
