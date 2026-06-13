@@ -50,3 +50,20 @@ rate-limited per client.
 
 The OpenAPI spec is generated from the route schemas, so it never drifts from the
 code. Browse and try the endpoints live at `/docs`.
+
+## Typed contract
+
+The wire DTOs live in `src/contract.ts` as zod schemas plus inferred types, and the
+app exports `AppType`. A consumer (the web app) gets end-to-end types with no
+codegen via Hono RPC:
+
+```ts
+import { hc } from 'hono/client'
+import type { AppType } from '@auspex/api/app'
+
+const client = hc<AppType>('http://localhost:3000')
+const res = await client.lists.$post({ json: { name, faction, body } })
+```
+
+The request and response types (`CreateListBody`, `GetListResponse`,
+`DatasheetSummary`, …) can also be imported directly from `src/contract.ts`.

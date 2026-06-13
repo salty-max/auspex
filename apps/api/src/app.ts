@@ -19,23 +19,28 @@ export interface AppDeps {
 /**
  * Build the API. The data db and list repository are injected, so tests run the
  * whole app against an in-memory baked fixture and list store without touching
- * Postgres or the filesystem. The OpenAPI spec is served at `/openapi.json` and
- * the Scalar reference UI at `/docs`.
+ * Postgres or the filesystem. The routes are chained so the returned type carries
+ * them — `AppType` drives a typed Hono RPC client for the web. The OpenAPI spec is
+ * at `/openapi.json` and the Scalar reference UI at `/docs`.
  */
-export function createApp(deps: AppDeps): OpenAPIHono {
+export function createApp(deps: AppDeps) {
   const app = new OpenAPIHono()
-
   app.use('*', rateLimit({ windowMs: 60_000, max: 120 }))
-  app.get('/health', (c) => c.json({ status: 'ok' }))
-  app.route('/', dataRoutes(deps.db))
-  app.route('/', listRoutes({ lists: deps.lists, data: deps.db }))
+
+  const routed = app
+    .get('/health', (c) => c.json({ status: 'ok' }))
+    .route('/', dataRoutes(deps.db))
+    .route('/', listRoutes({ lists: deps.lists, data: deps.db }))
 
   app.doc('/openapi.json', {
     openapi: '3.1.0',
     info: { title: 'Auspex API', version: '0.0.0' },
   })
   app.get('/docs', Scalar({ url: '/openapi.json' }))
-
   app.onError(errorHandler)
-  return app
+
+  return routed
 }
+
+/** The app's route type, for a typed Hono RPC client (`hc<AppType>`). */
+export type AppType = ReturnType<typeof createApp>
