@@ -1,0 +1,29 @@
+{
+  "name": "@auspex/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "start": "bun run src/index.ts",
+    "build": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "lint": "eslint . --max-warnings 0",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@auspex/data": "workspace:*",
+    "@auspex/dsl": "workspace:*",
+    "@auspex/engine": "workspace:*",
+    "@auspex/resolver": "workspace:*",
+    "@auspex/schema": "workspace:*",
+    "@hono/zod-validator": "^0.8.0",
+    "@sentry/bun": "^10.57.0",
+    "hono": "^4.12.25",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "bun-types": "^1.3.13",
+    "typescript": "^6.0.3"
+  }
+}
