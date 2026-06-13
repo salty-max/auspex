@@ -2,6 +2,7 @@ import prettierConfig from 'eslint-config-prettier'
 import importPlugin from 'eslint-plugin-import'
 import jsdocPlugin from 'eslint-plugin-jsdoc'
 import prettierPlugin from 'eslint-plugin-prettier'
+import reactHooks from 'eslint-plugin-react-hooks'
 import * as regexpPlugin from 'eslint-plugin-regexp'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import unicornPlugin from 'eslint-plugin-unicorn'
@@ -86,9 +87,10 @@ export default [
     ],
   },
 
-  // Source files — full ruleset including type-checked rules and JSDoc.
+  // Library and backend source — full ruleset including type-checked rules and
+  // JSDoc. The web app is a React SPA with different conventions (below).
   ...tseslint.config({
-    files: ['packages/*/src/**/*.{ts,tsx}', 'apps/*/src/**/*.{ts,tsx}'],
+    files: ['packages/*/src/**/*.{ts,tsx}', 'apps/api/src/**/*.{ts,tsx}'],
     extends: [
       ...tseslint.configs.recommendedTypeChecked,
       jsdocPlugin.configs['flat/recommended-typescript'],
@@ -107,6 +109,36 @@ export default [
     rules: {
       ...prettierConfig.rules,
       ...srcRules,
+    },
+  }),
+
+  // Web app — React SPA. Type-checked rules + the hooks rules; no JSDoc, since
+  // components document themselves. PascalCase component files are allowed.
+  ...tseslint.config({
+    files: ['apps/web/**/*.{ts,tsx}'],
+    extends: [
+      ...tseslint.configs.recommendedTypeChecked,
+      regexpPlugin.configs['flat/recommended'],
+    ],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      ...sharedPlugins,
+      'react-hooks': reactHooks,
+    },
+    rules: {
+      ...prettierConfig.rules,
+      ...sharedRules,
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'error',
+      'unicorn/filename-case': [
+        'error',
+        { cases: { kebabCase: true, pascalCase: true } },
+      ],
     },
   }),
 
