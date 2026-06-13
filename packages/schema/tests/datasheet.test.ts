@@ -65,13 +65,22 @@ describe('weaponProfileSchema', () => {
     expect(flamer.abilities.anti?.threshold).toBe(4)
   })
 
+  test('strength may be a number or a dice expression', () => {
+    expect(weaponProfileSchema.parse({ ...bolter, strength: 8 }).strength).toBe(
+      8
+    )
+    expect(
+      weaponProfileSchema.parse({ ...bolter, strength: '2D6' }).strength
+    ).toBe('2D6')
+    expect(() =>
+      weaponProfileSchema.parse({ ...bolter, strength: 'banana' })
+    ).toThrow()
+  })
+
   test('rejects out-of-band characteristics', () => {
     expect(() => weaponProfileSchema.parse({ ...bolter, skill: 7 })).toThrow()
     expect(() => weaponProfileSchema.parse({ ...bolter, skill: 1 })).toThrow()
     expect(() => weaponProfileSchema.parse({ ...bolter, ap: -1 })).toThrow()
-    expect(() =>
-      weaponProfileSchema.parse({ ...bolter, strength: 0 })
-    ).toThrow()
     expect(() =>
       weaponProfileSchema.parse({
         ...bolter,
