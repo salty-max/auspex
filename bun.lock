@@ -69,6 +69,20 @@
         "typescript": "^6.0.3",
       },
     },
+    "packages/resolver": {
+      "name": "@auspex/resolver",
+      "version": "0.0.0",
+      "dependencies": {
+        "@auspex/dsl": "workspace:*",
+        "@auspex/schema": "workspace:*",
+      },
+      "devDependencies": {
+        "@auspex/data": "workspace:*",
+        "@auspex/engine": "workspace:*",
+        "bun-types": "^1.3.13",
+        "typescript": "^6.0.3",
+      },
+    },
     "packages/schema": {
       "name": "@auspex/schema",
       "version": "0.0.0",
@@ -90,6 +104,8 @@
     "@auspex/engine": ["@auspex/engine@workspace:packages/engine"],
 
     "@auspex/importer": ["@auspex/importer@workspace:packages/importer"],
+
+    "@auspex/resolver": ["@auspex/resolver@workspace:packages/resolver"],
 
     "@auspex/schema": ["@auspex/schema@workspace:packages/schema"],
 

@@ -1,0 +1,33 @@
+{
+  "name": "@auspex/resolver",
+  "version": "0.0.0",
+  "description": "Bind a parsed army list to real datasheets, validate and cost it",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --sourcemap --target=browser --format=esm --packages external && tsc --emitDeclarationOnly -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "lint": "eslint . --max-warnings 0",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@auspex/dsl": "workspace:*",
+    "@auspex/schema": "workspace:*"
+  },
+  "devDependencies": {
+    "@auspex/data": "workspace:*",
+    "@auspex/engine": "workspace:*",
+    "bun-types": "^1.3.13",
+    "typescript": "^6.0.3"
+  }
+}

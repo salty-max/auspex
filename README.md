@@ -16,6 +16,7 @@ packages/
   dsl/      Army list text language — parser producing a source-mapped AST (parsil)
   importer/ BSData (BattleScribe) catalogue ingestion into the schema
   data/     Baked faction artifacts: SQLite + provenance + hand-edited YAML overrides
+  resolver/ Binds a parsed list to real datasheets — validates, costs, diagnoses
 apps/
   api/      Backend: serves data, persists lists                          (planned)
   web/      Army builder + combat simulator UI                            (planned)
