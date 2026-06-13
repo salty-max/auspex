@@ -57,7 +57,8 @@ export const weaponProfileSchema = z.object({
   attacks: diceExprSchema,
   /** Ballistic/Weapon Skill as the N+ to hit; `'torrent'` auto-hits. */
   skill: z.union([z.literal('torrent'), rollThreshold]),
-  strength: z.int().positive(),
+  /** Strength characteristic; usually a number, occasionally random (e.g. `2D6`). */
+  strength: diceExprSchema,
   /** Armour penetration as a non-negative number (`2` means AP -2). */
   ap: z.int().nonnegative(),
   damage: diceExprSchema,
