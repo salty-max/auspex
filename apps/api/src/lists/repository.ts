@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 
 import type { ListsDatabase } from '../db/client'
 import { lists } from '../db/schema'
@@ -54,9 +54,12 @@ export function drizzleListRepository(db: ListsDatabase): ListRepository {
       return row
     },
     async update(id, patch) {
+      // `updatedAt` must come from the database clock, like `createdAt` did on
+      // insert — a JS `new Date()` can be milliseconds behind Postgres and make
+      // the updated row look older than the created one.
       const [row] = await db
         .update(lists)
-        .set({ ...patch, updatedAt: new Date() })
+        .set({ ...patch, updatedAt: sql`now()` })
         .where(eq(lists.id, id))
         .returning()
       return row
