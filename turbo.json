@@ -3,6 +3,12 @@
   "tasks": {
     "build": { "dependsOn": ["^build"], "outputs": ["dist/**"] },
     "test": { "dependsOn": ["^build", "build"], "env": ["DATABASE_URL"] },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true,
+      "env": ["DATABASE_URL"]
+    },
     "typecheck": { "dependsOn": ["^build", "build"] },
     "lint": {
       "inputs": [
