@@ -228,7 +228,12 @@ function buildDatasheet(
 
   const unitProfiles = profiles.filter((p) => attr(p, 'typeName') === 'Unit')
   if (unitProfiles.length === 0) {
-    issues.push({ entry: name, reason: 'no Unit statline profile found' })
+    // A model entry with no statline is a component — its stats live on the
+    // parent unit, which is imported in its own right — so it is not a datasheet
+    // and is skipped silently. A unit entry with no statline is a real anomaly.
+    if (attr(entry, 'type') === 'unit') {
+      issues.push({ entry: name, reason: 'no Unit statline profile found' })
+    }
     return undefined
   }
   const stats = characteristics(unitProfiles[0])
