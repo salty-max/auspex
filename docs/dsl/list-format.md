@@ -91,8 +91,8 @@ diagnostics** (`{ message, line, column }`). It is intentionally datasheet-agnos
   header, an unparseable points value.
 - It does **not** check that a unit name is a real datasheet, that the points are
   right, that the wargear is legal, or that the list obeys detachment rules. Those
-  need the data layer and live in a later **resolver** step (`#15`+), which takes the
-  AST plus `@auspex/data` and returns a validated, costed army.
+  need the data layer and live in the **resolver** step (`@auspex/resolver`), which
+  takes the AST plus a datasheet source and returns a validated, costed army.
 
 Parsing is line-by-line: a line that fails to parse yields one diagnostic pinned to
 its line and column, and parsing continues — so one bad line never hides the rest of
