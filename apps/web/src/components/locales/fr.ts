@@ -2,7 +2,6 @@ export const common = {
   tagline: 'Maths de combat 40k exactes',
   nav: {
     menu: 'Menu',
-    close: 'Fermer',
   },
   footer: {
     disclaimer:

@@ -12,13 +12,15 @@ export function DiceField({
   onChange: (value: string) => void
 }) {
   return (
-    <Field
-      label={label}
-      type="text"
-      inputMode="text"
-      value={value}
-      invalid={isInvalidDice(value)}
-      onChange={(e) => onChange(e.currentTarget.value)}
-    />
+    <Field>
+      <Field.Label>{label}</Field.Label>
+      <Field.Control
+        type="text"
+        inputMode="text"
+        value={value}
+        invalid={isInvalidDice(value)}
+        onChange={(e) => onChange(e.currentTarget.value)}
+      />
+    </Field>
   )
 }
