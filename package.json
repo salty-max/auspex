@@ -17,7 +17,8 @@
     "dev": "bun run db:up && DATABASE_URL=postgres://auspex:auspex@localhost:5432/auspex turbo run dev",
     "dev:web": "turbo run dev --filter=@auspex/web",
     "dev:api": "bun run db:up && DATABASE_URL=postgres://auspex:auspex@localhost:5432/auspex turbo run dev --filter=@auspex/api",
-    "db:up": "docker compose -f apps/api/docker-compose.yml up -d",
+    "colima:up": "if command -v colima >/dev/null 2>&1; then colima status >/dev/null 2>&1 || colima start; fi",
+    "db:up": "bun run colima:up && docker compose -f apps/api/docker-compose.yml up -d",
     "db:down": "docker compose -f apps/api/docker-compose.yml down",
     "commitlint": "commitlint --edit",
     "prepare": "husky"
