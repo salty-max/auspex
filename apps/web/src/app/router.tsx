@@ -3,10 +3,17 @@ import {
   createRoute,
   createRouter,
 } from '@tanstack/react-router'
+import { lazy } from 'react'
 
 import { RootLayout } from '@/app/root-layout'
 import { LandingPage } from '@/features/landing/ui/landing-page'
-import { SimulatorPage } from '@/features/simulator/ui/simulator-page'
+
+// Code-split the simulator (and the engine it pulls in) off the landing bundle.
+const SimulatorPage = lazy(() =>
+  import('@/features/simulator/ui/simulator-page').then((m) => ({
+    default: m.SimulatorPage,
+  }))
+)
 
 const rootRoute = createRootRoute({ component: RootLayout })
 
