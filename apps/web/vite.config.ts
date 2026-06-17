@@ -5,6 +5,8 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
+    // Keep a single React instance — deps like react-i18next must share it.
+    dedupe: ['react', 'react-dom'],
     alias: {
       '@': new URL('./src', import.meta.url).pathname,
     },
