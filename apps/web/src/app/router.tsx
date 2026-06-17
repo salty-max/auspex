@@ -23,13 +23,13 @@ const indexRoute = createRoute({
   component: LandingPage,
 })
 
-const appRoute = createRoute({
+const simulatorRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/app',
+  path: '/simulator',
   component: SimulatorPage,
 })
 
-const routeTree = rootRoute.addChildren([indexRoute, appRoute])
+const routeTree = rootRoute.addChildren([indexRoute, simulatorRoute])
 
 export const router = createRouter({ routeTree })
 
