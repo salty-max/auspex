@@ -11,15 +11,17 @@ export function ThemeControls() {
 
   return (
     <Select
-      aria-label={t('palette.label')}
       value={palette}
-      onChange={(e) => setPalette(e.currentTarget.value as Palette)}
+      onValueChange={(value) => setPalette(value as Palette)}
     >
-      {PALETTES.map((value) => (
-        <option key={value} value={value}>
-          {t(`palette.${value}`)}
-        </option>
-      ))}
+      <Select.Trigger aria-label={t('palette.label')} />
+      <Select.Content>
+        {PALETTES.map((value) => (
+          <Select.Item key={value} value={value}>
+            {t(`palette.${value}`)}
+          </Select.Item>
+        ))}
+      </Select.Content>
     </Select>
   )
 }

@@ -1,11 +1,11 @@
-import { cn } from '@/lib/utils'
+import { ToggleGroup as ToggleGroupPrimitive } from 'radix-ui'
 
 interface SegmentedOption<T extends string> {
   value: T
   label: string
 }
 
-/** An animated segmented control with a sliding active indicator. */
+/** A single-select toggle group (Radix) with a sliding active indicator. */
 export function Segmented<T extends string>({
   options,
   value,
@@ -22,8 +22,12 @@ export function Segmented<T extends string>({
     options.findIndex((o) => o.value === value)
   )
   return (
-    <div
-      role="group"
+    <ToggleGroupPrimitive.Root
+      type="single"
+      value={value}
+      onValueChange={(next) => {
+        if (next) onChange(next as T)
+      }}
       aria-label={ariaLabel}
       className="relative inline-flex border border-border p-0.5"
     >
@@ -36,21 +40,14 @@ export function Segmented<T extends string>({
         }}
       />
       {options.map((option) => (
-        <button
+        <ToggleGroupPrimitive.Item
           key={option.value}
-          type="button"
-          aria-pressed={value === option.value}
-          onClick={() => onChange(option.value)}
-          className={cn(
-            'relative z-10 min-w-9 px-2.5 py-1 text-center text-xs font-medium uppercase tracking-wider transition-colors',
-            value === option.value
-              ? 'text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
+          value={option.value}
+          className="relative z-10 min-w-9 px-2.5 py-1 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:text-foreground data-[state=on]:text-primary-foreground"
         >
           {option.label}
-        </button>
+        </ToggleGroupPrimitive.Item>
       ))}
-    </div>
+    </ToggleGroupPrimitive.Root>
   )
 }

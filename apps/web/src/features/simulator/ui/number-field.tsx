@@ -16,14 +16,18 @@ export function NumberField({
   onChange: (value: number) => void
 }) {
   return (
-    <Field
-      label={label}
-      type="number"
-      inputMode="numeric"
-      value={value}
-      min={min}
-      max={max}
-      onChange={(e) => onChange(clamp(e.currentTarget.valueAsNumber, min, max))}
-    />
+    <Field>
+      <Field.Label>{label}</Field.Label>
+      <Field.Control
+        type="number"
+        inputMode="numeric"
+        value={value}
+        min={min}
+        max={max}
+        onChange={(e) =>
+          onChange(clamp(e.currentTarget.valueAsNumber, min, max))
+        }
+      />
+    </Field>
   )
 }
