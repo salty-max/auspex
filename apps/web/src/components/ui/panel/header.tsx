@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 
+import { Box } from '@/components/ui/box'
 import { cn } from '@/lib/utils'
 
 /** A command-prompt header bar for a Panel; `right` is an optional trailing slot. */
@@ -13,9 +14,13 @@ export function PanelHeader({
   className?: string
 }) {
   return (
-    <div
+    <Box
+      direction="row"
+      align="center"
+      justify="between"
+      gap={3}
       className={cn(
-        'flex items-center justify-between gap-3 border-b border-border bg-muted/30 px-5 py-2.5',
+        'border-b border-border bg-muted/30 px-5 py-2.5',
         className
       )}
     >
@@ -24,6 +29,6 @@ export function PanelHeader({
         {children}
       </span>
       {right}
-    </div>
+    </Box>
   )
 }
