@@ -1,6 +1,8 @@
 import type { SimResult } from '@auspex/engine'
 import { useTranslation } from 'react-i18next'
 
+import { Box } from '@/components/ui/box'
+
 /** The damage distribution as bars, with the mean marked. */
 export function DistributionChart({ result }: { result: SimResult }) {
   const { t } = useTranslation('simulator')
@@ -30,10 +32,14 @@ export function DistributionChart({ result }: { result: SimResult }) {
           />
         ))}
       </div>
-      <div className="mt-2 flex justify-between font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+      <Box
+        direction="row"
+        justify="between"
+        className="mt-2 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground"
+      >
         <span>{t('chart.min')}</span>
         <span>{t('chart.max', { max: maxDamage })}</span>
-      </div>
+      </Box>
     </div>
   )
 }

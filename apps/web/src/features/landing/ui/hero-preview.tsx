@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
+import { Box } from '@/components/ui/box'
 import { LiveTag } from '@/components/ui/live-tag'
 import { Panel } from '@/components/ui/panel'
 import { Stat } from '@/components/ui/stat'
@@ -22,7 +23,7 @@ export function HeroPreview() {
             <Stat value="2.1" label={t('readout.modelsSlain')} />
             <Stat value="88%" label={t('readout.atLeastOneKill')} />
           </div>
-          <div className="flex h-28 items-end gap-1.5">
+          <Box direction="row" align="end" gap={1.5} className="h-28">
             {BARS.map((h, i) => (
               <div
                 key={i}
@@ -30,7 +31,7 @@ export function HeroPreview() {
                 style={{ height: `${h}%` }}
               />
             ))}
-          </div>
+          </Box>
         </Panel.Body>
       </Panel>
     </div>

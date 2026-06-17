@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
+import { Box } from '@/components/ui/box'
 import { SectionLabel } from '@/components/ui/section-label'
 import { useFactions } from '@/features/factions/hooks/use-factions'
 
@@ -40,7 +41,12 @@ export function Features() {
       </h2>
       <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
         {items.map(({ n, title, body }) => (
-          <div key={n} className="flex gap-5 border-t border-border/60 pt-5">
+          <Box
+            key={n}
+            direction="row"
+            gap={5}
+            className="border-t border-border/60 pt-5"
+          >
             <span className="w-12 shrink-0 font-display text-2xl font-bold text-primary/70 text-glow">
               {n}
             </span>
@@ -50,7 +56,7 @@ export function Features() {
               </h3>
               <p className="mt-1.5 text-sm text-muted-foreground">{body}</p>
             </div>
-          </div>
+          </Box>
         ))}
       </div>
     </section>

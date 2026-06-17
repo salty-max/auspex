@@ -3,7 +3,7 @@ import type { ComponentPropsWithoutRef, ElementType } from 'react'
 import { cn } from '@/lib/utils'
 
 type Direction = 'row' | 'col'
-type Step = 0 | 1 | 1.5 | 2 | 3 | 4 | 5 | 6 | 8
+type Step = 0 | 1 | 1.5 | 2 | 2.5 | 3 | 4 | 5 | 6 | 8
 type Align = 'start' | 'center' | 'end' | 'stretch'
 type Justify = 'start' | 'center' | 'end' | 'between'
 
@@ -17,6 +17,7 @@ const GAP: Record<Step, string> = {
   1: 'gap-1',
   1.5: 'gap-1.5',
   2: 'gap-2',
+  2.5: 'gap-2.5',
   3: 'gap-3',
   4: 'gap-4',
   5: 'gap-5',
@@ -28,6 +29,7 @@ const PAD: Record<Step, string> = {
   1: 'p-1',
   1.5: 'p-1.5',
   2: 'p-2',
+  2.5: 'p-2.5',
   3: 'p-3',
   4: 'p-4',
   5: 'p-5',
