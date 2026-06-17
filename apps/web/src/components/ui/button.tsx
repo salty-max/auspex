@@ -1,42 +1,33 @@
-import { cva, type VariantProps } from 'class-variance-authority'
 import type { ComponentProps } from 'react'
 
 import { cn } from '@/lib/utils'
 
-const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none',
-  {
-    variants: {
-      variant: {
-        default:
-          'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
-        secondary:
-          'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
-        outline:
-          'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-      },
-      size: {
-        default: 'h-9 px-4 py-2',
-        sm: 'h-8 rounded-md px-3',
-        lg: 'h-10 rounded-md px-6',
-        icon: 'size-9',
-      },
-    },
-    defaultVariants: { variant: 'default', size: 'default' },
-  }
-)
+type ButtonVariant = 'solid' | 'outline' | 'ghost'
 
-type ButtonProps = ComponentProps<'button'> &
-  VariantProps<typeof buttonVariants>
+const BASE =
+  'inline-flex items-center justify-center gap-2.5 font-mono text-sm font-medium uppercase tracking-widest transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
 
-export function Button({ className, variant, size, ...props }: ButtonProps) {
-  return (
-    <button
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
-  )
+const VARIANTS: Record<ButtonVariant, string> = {
+  solid:
+    'border border-primary bg-primary px-6 py-3 text-primary-foreground hover:bg-primary/90',
+  outline:
+    'border border-border px-6 py-3 text-foreground hover:border-ring hover:bg-accent/40',
+  ghost: 'p-2 text-muted-foreground hover:bg-accent/40 hover:text-foreground',
 }
 
-export { buttonVariants }
+/** Class string for a terminal button — for non-button elements (e.g. a router Link). */
+export function buttonStyles(
+  variant: ButtonVariant = 'solid',
+  className?: string
+): string {
+  return cn(BASE, VARIANTS[variant], className)
+}
+
+/** Terminal-styled button. */
+export function Button({
+  variant = 'solid',
+  className,
+  ...props
+}: ComponentProps<'button'> & { variant?: ButtonVariant }) {
+  return <button className={buttonStyles(variant, className)} {...props} />
+}

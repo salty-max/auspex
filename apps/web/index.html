@@ -4,19 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Auspex — exact 40k combat math</title>
-    <script>
-      // Apply the stored theme before paint to avoid a flash.
-      ;(function () {
-        try {
-          var t = localStorage.getItem('auspex-theme') || 'dark'
-          var dark =
-            t === 'system'
-              ? matchMedia('(prefers-color-scheme: dark)').matches
-              : t === 'dark'
-          document.documentElement.classList.add(dark ? 'dark' : 'light')
-        } catch (e) {}
-      })()
-    </script>
   </head>
   <body>
     <div id="root"></div>

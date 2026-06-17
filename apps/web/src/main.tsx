@@ -1,26 +1,26 @@
-import '@fontsource/cinzel/600.css'
-import '@fontsource/cinzel/700.css'
-import '@fontsource/cinzel/900.css'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
+import '@fontsource/ibm-plex-mono/600.css'
+import '@fontsource/ibm-plex-mono/700.css'
 import './index.css'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
-import { App } from '@/app'
-import { ThemeProvider } from '@/components/theme-provider'
+import { Providers } from '@/app/providers'
+import { router } from '@/app/router'
+import { initI18n } from '@/features/localization/i18n'
 
-const queryClient = new QueryClient()
+initI18n()
 
 const root = document.getElementById('root')
 if (!root) throw new Error('missing #root')
 
 createRoot(root).render(
   <StrictMode>
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
-    </ThemeProvider>
+    <Providers>
+      <RouterProvider router={router} />
+    </Providers>
   </StrictMode>
 )

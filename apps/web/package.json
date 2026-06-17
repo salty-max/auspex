@@ -12,14 +12,17 @@
   },
   "dependencies": {
     "@auspex/engine": "workspace:*",
-    "@fontsource/cinzel": "^5.2.8",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
     "@tanstack/react-query": "^5.69.0",
+    "@tanstack/react-router": "^1.170.15",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "hono": "^4.12.25",
+    "i18next": "^26.3.1",
     "lucide-react": "^0.475.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-i18next": "^17.0.8",
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
