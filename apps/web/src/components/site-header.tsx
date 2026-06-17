@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { Menu } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,34 @@ function HeaderControls({ className }: { className?: string }) {
       <CrtToggle />
       <LanguageToggle />
     </div>
+  )
+}
+
+/** Mobile burger holding the controls; auto-closes once the inline controls show (≥sm). */
+function MobileMenu() {
+  const { t } = useTranslation('common')
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 40rem)')
+    const onChange = () => {
+      if (mq.matches) setOpen(false)
+    }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <Popover.Trigger asChild>
+        <Button variant="ghost" aria-label={t('nav.menu')}>
+          <Menu className="size-5" />
+        </Button>
+      </Popover.Trigger>
+      <Popover.Content>
+        <HeaderControls className="flex flex-col items-stretch gap-3" />
+      </Popover.Content>
+    </Popover>
   )
 }
 
@@ -37,16 +66,7 @@ export function SiteHeader() {
         <HeaderControls className="hidden items-center gap-2 sm:flex" />
 
         <div className="sm:hidden">
-          <Popover>
-            <Popover.Trigger asChild>
-              <Button variant="ghost" aria-label={t('nav.menu')}>
-                <Menu className="size-5" />
-              </Button>
-            </Popover.Trigger>
-            <Popover.Content>
-              <HeaderControls className="flex flex-col items-stretch gap-3" />
-            </Popover.Content>
-          </Popover>
+          <MobileMenu />
         </div>
       </div>
     </header>
