@@ -43,7 +43,7 @@ export function Segmented<T extends string>({
         <ToggleGroupPrimitive.Item
           key={option.value}
           value={option.value}
-          className="relative z-10 min-w-9 px-2.5 py-1 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:text-foreground data-[state=on]:text-primary-foreground"
+          className="relative z-10 min-w-9 flex-1 px-2.5 py-1 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:text-foreground data-[state=on]:text-primary-foreground"
         >
           {option.label}
         </ToggleGroupPrimitive.Item>
