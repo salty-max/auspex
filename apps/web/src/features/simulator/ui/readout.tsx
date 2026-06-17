@@ -1,6 +1,7 @@
 import type { SimResult } from '@auspex/engine'
 import { Trans, useTranslation } from 'react-i18next'
 
+import { Box } from '@/components/ui/box'
 import { Stat } from '@/components/ui/stat'
 import { percent } from '@/features/simulator/domain/matchup'
 import { DistributionChart } from '@/features/simulator/ui/distribution-chart'
@@ -11,7 +12,7 @@ export function Readout({ result }: { result: SimResult }) {
   const beatsAverage = result.probAtLeast(Math.round(result.mean))
 
   return (
-    <div className="space-y-6">
+    <Box gap={6}>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Stat label={t('readout.meanDamage')} value={result.mean.toFixed(2)} />
         <Stat
@@ -41,6 +42,6 @@ export function Readout({ result }: { result: SimResult }) {
           }}
         />
       </p>
-    </div>
+    </Box>
   )
 }

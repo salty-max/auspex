@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
+import { Box } from '@/components/ui/box'
 import { Panel } from '@/components/ui/panel'
 import { CtaLink } from '@/features/landing/ui/cta-link'
 
@@ -18,9 +19,9 @@ export function CallToAction() {
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground text-pretty">
           {t('cta.body')}
         </p>
-        <div className="mt-7 flex justify-center">
+        <Box direction="row" justify="center" className="mt-7">
           <CtaLink>{t('cta.button')}</CtaLink>
-        </div>
+        </Box>
       </div>
     </Panel>
   )
