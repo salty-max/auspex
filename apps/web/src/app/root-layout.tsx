@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
+import { Box } from '@/components/ui/box'
 
 /** Shown while a lazily-loaded route chunk is fetched. */
 function RouteFallback() {
@@ -18,7 +19,7 @@ function RouteFallback() {
 /** Shared chrome wrapped around every route. */
 export function RootLayout() {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <Box className="min-h-dvh">
       <SiteHeader />
       <div className="flex-1">
         <Suspense fallback={<RouteFallback />}>
@@ -26,6 +27,6 @@ export function RootLayout() {
         </Suspense>
       </div>
       <SiteFooter />
-    </div>
+    </Box>
   )
 }

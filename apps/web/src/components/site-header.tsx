@@ -3,6 +3,7 @@ import { Menu } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Box } from '@/components/ui/box'
 import { Button } from '@/components/ui/button'
 import { Popover } from '@/components/ui/popover'
 import { LanguageToggle } from '@/features/localization/ui/language-toggle'
@@ -53,7 +54,13 @@ export function SiteHeader() {
   const { t } = useTranslation('common')
   return (
     <header className="sticky top-0 z-20 border-b bg-background/70 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-3.5">
+      <Box
+        direction="row"
+        align="center"
+        justify="between"
+        gap={3}
+        className="mx-auto max-w-5xl px-4 py-3 sm:px-6 sm:py-3.5"
+      >
         <Link to="/" className="flex items-baseline gap-3">
           <span className="font-display text-xl font-bold tracking-[0.18em] text-primary text-glow">
             AUSPEX
@@ -68,7 +75,7 @@ export function SiteHeader() {
         <div className="sm:hidden">
           <MobileMenu />
         </div>
-      </div>
+      </Box>
     </header>
   )
 }
