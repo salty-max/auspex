@@ -155,4 +155,13 @@ export default [
       ...sharedRules,
     },
   }),
+
+  // One-shot CLI tooling (e.g. the icon import script) — Bun scripts whose job
+  // is to print progress, so `console` is allowed.
+  {
+    files: ['apps/*/scripts/**/*.ts', 'scripts/**/*.ts'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
 ]
